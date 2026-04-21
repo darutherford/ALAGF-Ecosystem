@@ -70,3 +70,19 @@ demo/ledger/hash_chain/*.db
 
 # Evidence packs (generated outputs â€” regenerate on demand)
 docs/dissertation-artifacts/evidence_packs/*.zip
+
+# --- Sprint-1 additions ---
+
+# Test-generated ledger and registry state
+multiagent/ledger/agent_registry/*.json
+multiagent/ledger/hash_chain/sessions/
+!multiagent/ledger/agent_registry/.gitkeep
+!multiagent/ledger/hash_chain/sessions/.gitkeep
+
+# Python caches
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
