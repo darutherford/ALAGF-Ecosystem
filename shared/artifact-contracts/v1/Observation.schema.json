@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://alagf.io/schemas/v1/Observation.schema.json",
+  "title": "Observation",
+  "description": "Generic observation artifact (Sprint 1 legacy). Authority: OBSERVATIONAL. Captures data without producing conclusions.",
+  "$comment": "Extracted from alagf-demo/artifacts/__init__.py@Observation (Sprint-0 formalization).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "artifact_type",
+    "authority_level",
+    "artifact_id",
+    "session_id",
+    "created_at"
+  ],
+  "properties": {
+    "artifact_type": {
+      "type": "string",
+      "const": "Observation"
+    },
+    "authority_level": {
+      "type": "string",
+      "const": "observational"
+    },
+    "artifact_id": {
+      "type": "string",
+      "pattern": "^OBS_[0-9a-f]{12}$"
+    },
+    "session_id": {
+      "type": "string",
+      "pattern": "^SESSION_[0-9a-f]{8}$"
+    },
+    "observation_type": {
+      "type": "string",
+      "description": "Free-form classifier for the observation kind."
+    },
+    "observation_data": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Payload captured by the observation. Structure intentionally open."
+    },
+    "source_module": {
+      "type": "string",
+      "description": "Identifier of the emitting ALAGF module (e.g., M2, M3)."
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://alagf.io/schemas/v2/Decision.schema.json",
+  "title": "Decision (v2, multi-agent extension)",
+  "description": "v2 extension of v1 Decision. Adds agent_context_reviewed (human affirmation of full agent chain review) and synthesis_depth_at_decision (ledger-visible record of depth state at the moment of binding).",
+  "$comment": "Extends v1 Decision. New fields make multi-agent evidence review explicitly auditable.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "artifact_type",
+    "authority_level",
+    "artifact_id",
+    "session_id",
+    "auditor_id",
+    "observation_refs",
+    "agent_context_reviewed",
+    "synthesis_depth_at_decision",
+    "created_at"
+  ],
+  "properties": {
+    "artifact_type": {
+      "type": "string",
+      "const": "Decision"
+    },
+    "authority_level": {
+      "type": "string",
+      "const": "binding"
+    },
+    "artifact_id": {
+      "type": "string",
+      "pattern": "^DEC_[0-9a-f]{12}$"
+    },
+    "session_id": {
+      "type": "string",
+      "pattern": "^SESSION_[0-9a-f]{8}$"
+    },
+    "auditor_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "decision_text": { "type": "string" },
+    "observation_refs": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1
+    },
+    "hypothesis_refs": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "policy_reference": { "type": "string" },
+    "agent_context_reviewed": {
+      "type": "boolean",
+      "const": true,
+      "description": "Net-new in v2. Human affirmation that the full agent chain and input_provenance_chain for all referenced Observations were reviewed prior to decision. Must be true for Decision to validate. Governance rationale: Invariant 3 (Evidence-First) in multi-agent topologies requires explicit human affirmation of upstream chain review."
+    },
+    "synthesis_depth_at_decision": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Net-new in v2. Maximum synthesis_depth value observed across all Hypotheses referenced by this Decision, captured at the moment of binding. Governance rationale: Invariant 4 (Reconstructability) requires the depth state at decision time be recoverable from the ledger alone."
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

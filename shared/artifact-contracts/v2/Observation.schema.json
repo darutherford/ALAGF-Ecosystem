@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://alagf.io/schemas/v2/Observation.schema.json",
+  "title": "Observation (v2, multi-agent extension)",
+  "description": "v2 extension of v1 Observation. Adds source_agent_id and input_provenance_chain for multi-agent topology support. All v1 fields and invariants are preserved.",
+  "$comment": "Extends v1 Observation. New fields supply agent-boundary provenance required by Invariants 3 (Evidence-First) and 4 (Reconstructability).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "artifact_type",
+    "authority_level",
+    "artifact_id",
+    "session_id",
+    "source_agent_id",
+    "input_provenance_chain",
+    "created_at"
+  ],
+  "properties": {
+    "artifact_type": {
+      "type": "string",
+      "const": "Observation"
+    },
+    "authority_level": {
+      "type": "string",
+      "const": "observational"
+    },
+    "artifact_id": {
+      "type": "string",
+      "pattern": "^OBS_[0-9a-f]{12}$"
+    },
+    "session_id": {
+      "type": "string",
+      "pattern": "^SESSION_[0-9a-f]{8}$"
+    },
+    "observation_type": {
+      "type": "string"
+    },
+    "observation_data": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "source_module": {
+      "type": "string"
+    },
+    "source_agent_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Net-new in v2. References AgentIdentity.agent_id of the producing agent. Required. Governance rationale: Invariant 3 (Evidence-First) requires every Observation to trace to a registered source."
+    },
+    "input_provenance_chain": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Net-new in v2. Ordered list of agent_id values representing the upstream provenance chain for this Observation. Empty list indicates human-sourced input. Required. Governance rationale: Invariant 3 requires the chain be complete before Decision presentation. Invariant 4 requires ledger-alone reconstruction of every boundary crossing."
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

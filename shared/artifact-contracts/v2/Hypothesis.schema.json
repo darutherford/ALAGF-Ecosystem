@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://alagf.io/schemas/v2/Hypothesis.schema.json",
+  "title": "Hypothesis (v2, multi-agent extension)",
+  "description": "v2 extension of v1 Hypothesis. Adds synthesis_depth, upstream_hypothesis_refs, and composite_upstream_bme_score. non_authoritative_flag remains hard-coded true and non-overridable.",
+  "$comment": "Extends v1 Hypothesis. synthesis_depth is the primary counter enforcing max_synthesis_depth ceilings from AgentIdentity. composite_upstream_bme_score aggregates upstream agent BME scores at synthesis time.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "artifact_type",
+    "authority_level",
+    "non_authoritative_flag",
+    "artifact_id",
+    "session_id",
+    "observation_refs",
+    "synthesis_depth",
+    "upstream_hypothesis_refs",
+    "composite_upstream_bme_score",
+    "created_at"
+  ],
+  "properties": {
+    "artifact_type": {
+      "type": "string",
+      "const": "Hypothesis"
+    },
+    "authority_level": {
+      "type": "string",
+      "const": "non_binding"
+    },
+    "non_authoritative_flag": {
+      "type": "boolean",
+      "const": true,
+      "description": "Hard-coded true. Non-overridable. Preserved from v1."
+    },
+    "artifact_id": {
+      "type": "string",
+      "pattern": "^HYP_[0-9a-f]{12}$"
+    },
+    "session_id": {
+      "type": "string",
+      "pattern": "^SESSION_[0-9a-f]{8}$"
+    },
+    "observation_refs": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1
+    },
+    "hypothesis_text": { "type": "string" },
+    "confidence_score": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0
+    },
+    "source_model": { "type": "string" },
+    "reasoning_trace": { "type": "string" },
+    "tier_justification": { "type": "string" },
+    "risk_flags": {
+      "type": "array",
+      "items": { "type": "object", "additionalProperties": true }
+    },
+    "compliance_gaps": {
+      "type": "array",
+      "items": { "type": "object", "additionalProperties": true }
+    },
+    "recommendations": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "governance_narrative": { "type": "string" },
+    "entropy_assessment": { "type": "string" },
+    "raw_api_response": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "cached_response": { "type": "boolean" },
+    "synthesis_depth": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Net-new in v2. Count of non-human inferential layers from origin to this Hypothesis. When this value equals an upstream AgentIdentity.max_synthesis_depth, the orchestrator must emit DEPTH_LIMIT_REACHED and route to HITL. Governance rationale: Invariant 2 (Non-Bypass) structural enforcement."
+    },
+    "upstream_hypothesis_refs": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Net-new in v2. Ordered list of Hypothesis artifact IDs consumed in producing this Hypothesis. Empty list indicates a first-order hypothesis grounded only in Observations. Governance rationale: Invariant 4 (Reconstructability)."
+    },
+    "composite_upstream_bme_score": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "description": "Net-new in v2. Weighted aggregate of upstream agents' BME-CI scores at the moment of synthesis. Formula and weights defined in /shared/bme-metric-suite/composite_bme_ci.py. Governance rationale: supports BME-A extensions (BAR-A, ECPI-A, IQD-A) by carrying upstream contamination forward through synthesis chains."
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

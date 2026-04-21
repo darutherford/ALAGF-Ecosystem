@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://alagf.io/schemas/v1/ConstraintSet.schema.json",
+  "title": "ConstraintSet",
+  "description": "Baseline constraints, control limits, and policy references governing an audit session. Authority: ORCHESTRATION.",
+  "$comment": "Extracted from alagf-demo/artifacts/__init__.py@ConstraintSet (Sprint-0 formalization).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "artifact_type",
+    "authority_level",
+    "artifact_id",
+    "session_id",
+    "created_at"
+  ],
+  "properties": {
+    "artifact_type": {
+      "type": "string",
+      "const": "ConstraintSet"
+    },
+    "authority_level": {
+      "type": "string",
+      "const": "orchestration"
+    },
+    "artifact_id": {
+      "type": "string",
+      "pattern": "^CST_[0-9a-f]{12}$"
+    },
+    "session_id": {
+      "type": "string",
+      "pattern": "^SESSION_[0-9a-f]{8}$"
+    },
+    "constraint_set_ref": {
+      "type": "string",
+      "description": "Optional external reference identifier for the constraint set."
+    },
+    "baselines": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "number"
+      },
+      "description": "Per-metric baseline values keyed by metric name."
+    },
+    "control_limits": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "number"
+        }
+      },
+      "description": "Per-metric control limit dictionaries (e.g., {BAR: {upper: 0.05, lower: 0.0}})."
+    },
+    "policy_references": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Ordered list of policy identifiers bound to this session. Supports Evidence-First invariant (Invariant 3)."
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

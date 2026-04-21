@@ -1,0 +1,138 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://alagf.io/schemas/v2/AgentIdentity.schema.json",
+  "title": "AgentIdentity",
+  "description": "Canonical identity artifact for every agent participating in a multi-agent ALAGF session. Net-new in v2. Architectural foundation for the multi-agent extension. Its registration must precede all other session events (Invariant 4). The max_synthesis_depth field structurally enforces Invariant 2 (Non-Bypass) by making further AI progression architecturally impossible once the ceiling is reached.",
+  "$comment": "Net-new v2 artifact. No v1 precursor. Governance rationale: every agent boundary is a governance boundary; cross-boundary outputs require portable identity provenance for Invariants 1, 3, and 4.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "artifact_type",
+    "authority_level",
+    "agent_id",
+    "agent_type",
+    "model_id",
+    "provider",
+    "registration_timestamp",
+    "trust_tier",
+    "authority_scope",
+    "non_authoritative_flag",
+    "registered_by",
+    "parent_agent_id",
+    "max_synthesis_depth",
+    "status"
+  ],
+  "properties": {
+    "artifact_type": {
+      "type": "string",
+      "const": "AgentIdentity"
+    },
+    "authority_level": {
+      "type": "string",
+      "const": "non_binding",
+      "description": "AgentIdentity is a registration artifact. It does not itself produce binding outcomes. Agents registered by it produce non-binding outputs exclusively."
+    },
+    "agent_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Unique, session-scoped agent identifier. Required before any agent-sourced Observation or Hypothesis may be accepted."
+    },
+    "agent_type": {
+      "type": "string",
+      "enum": ["ORCHESTRATOR", "SUB_AGENT", "VALIDATOR", "HUMAN_PROXY"],
+      "description": "Role classification. Drives permitted authority_scope values and ordering constraints in the ledger."
+    },
+    "model_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Declared model version (e.g., claude-sonnet-4-6). Required for reconstructability (Invariant 4)."
+    },
+    "provider": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Model provider identifier (e.g., anthropic, openai, internal)."
+    },
+    "registration_timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 UTC timestamp of registration. Must precede any output from this agent."
+    },
+    "trust_tier": {
+      "type": "string",
+      "enum": ["T1", "T2", "T3", "T4"],
+      "description": "BME-CI tier classification. T1 Monitor, T2 Review, T3 Escalate, T4 Freeze. Set at registration based on prior session performance or explicit human assignment."
+    },
+    "authority_scope": {
+      "type": "string",
+      "enum": ["OBSERVATIONS_ONLY", "HYPOTHESES", "ROUTING"],
+      "description": "Operational scope permitted for this agent. Observations_only is the most restrictive. No scope permits binding output (Invariant 1)."
+    },
+    "non_authoritative_flag": {
+      "type": "boolean",
+      "const": true,
+      "description": "Hard-coded true. Non-overridable. Every agent's outputs are non-binding regardless of trust_tier or authority_scope. Enforces Invariant 1 at the schema level."
+    },
+    "registered_by": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Identifier of the human auditor who performed the registration. Must resolve to a human identity. Enforces human-authority provenance on the registry itself."
+    },
+    "parent_agent_id": {
+      "type": ["string", "null"],
+      "description": "Reference to the registering parent agent. Null for ORCHESTRATOR agents. Required non-null for SUB_AGENT and VALIDATOR types."
+    },
+    "max_synthesis_depth": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Governance ceiling on inferential hops from human-sourced Observation. Structurally enforced: when the ceiling is reached, DEPTH_LIMIT_REACHED is emitted and the system cannot continue without human intervention. Primary enforcement mechanism for Invariant 2 (Non-Bypass)."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["ACTIVE", "SUSPENDED", "REVOKED"],
+      "description": "Current lifecycle state of the agent. Status transitions emit AGENT_SUSPENDED or AGENT_REVOKED ledger events."
+    },
+    "revocation_event_ref": {
+      "type": ["string", "null"],
+      "description": "Reference to the ledger event that revoked this agent. Null while status is ACTIVE or SUSPENDED."
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "agent_type": { "const": "ORCHESTRATOR" }
+        }
+      },
+      "then": {
+        "properties": {
+          "parent_agent_id": { "type": "null" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "agent_type": { "enum": ["SUB_AGENT", "VALIDATOR"] }
+        }
+      },
+      "then": {
+        "properties": {
+          "parent_agent_id": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": { "const": "REVOKED" }
+        }
+      },
+      "then": {
+        "properties": {
+          "revocation_event_ref": { "type": "string", "minLength": 1 }
+        },
+        "required": ["revocation_event_ref"]
+      }
+    }
+  ]
+}

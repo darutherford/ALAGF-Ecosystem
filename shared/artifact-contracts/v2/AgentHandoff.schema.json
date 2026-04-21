@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://alagf.io/schemas/v2/AgentHandoff.schema.json",
+  "title": "AgentHandoff",
+  "description": "Ledger event artifact logged at every inter-agent output boundary crossing. Net-new in v2. Makes agent boundaries auditable as first-class events (core principle: agent boundaries are governance boundaries).",
+  "$comment": "Net-new v2 artifact. Governance rationale: Invariant 4 (Reconstructability) requires every boundary crossing be captured in the ledger without external context.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "artifact_type",
+    "authority_level",
+    "artifact_id",
+    "session_id",
+    "source_agent_id",
+    "target_agent_id",
+    "payload_artifact_id",
+    "handoff_timestamp",
+    "non_authoritative_flag"
+  ],
+  "properties": {
+    "artifact_type": {
+      "type": "string",
+      "const": "AgentHandoff"
+    },
+    "authority_level": {
+      "type": "string",
+      "const": "orchestration",
+      "description": "Handoffs are orchestration events. They record, not authorize."
+    },
+    "artifact_id": {
+      "type": "string",
+      "pattern": "^HOF_[0-9a-f]{12}$"
+    },
+    "session_id": {
+      "type": "string",
+      "pattern": "^SESSION_[0-9a-f]{8}$"
+    },
+    "source_agent_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Agent producing the payload. Must reference a registered AgentIdentity."
+    },
+    "target_agent_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Agent receiving the payload. Must reference a registered AgentIdentity."
+    },
+    "payload_artifact_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Identifier of the artifact being handed off (Observation, Hypothesis, etc.)."
+    },
+    "handoff_timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "non_authoritative_flag": {
+      "type": "boolean",
+      "const": true,
+      "description": "Hard-coded true. Handoffs do not confer authority on the payload."
+    }
+  }
+}

@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://alagf.io/schemas/v1/Hypothesis.schema.json",
+  "title": "Hypothesis",
+  "description": "AI-generated analysis artifact. Authority: NON_BINDING. The non_authoritative_flag is hard-coded true and non-overridable. Any attempt to produce a binding Hypothesis violates Invariant 1 (Authority).",
+  "$comment": "Extracted from alagf-demo/artifacts/__init__.py@Hypothesis (Sprint-0 formalization). Runtime enforcement: init=False + frozen=True on non_authoritative_flag.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "artifact_type",
+    "authority_level",
+    "non_authoritative_flag",
+    "artifact_id",
+    "session_id",
+    "observation_refs",
+    "created_at"
+  ],
+  "properties": {
+    "artifact_type": {
+      "type": "string",
+      "const": "Hypothesis"
+    },
+    "authority_level": {
+      "type": "string",
+      "const": "non_binding"
+    },
+    "non_authoritative_flag": {
+      "type": "boolean",
+      "const": true,
+      "description": "Hard-coded true. Non-overridable. Enforces Invariant 1 (Authority) at the schema level."
+    },
+    "artifact_id": {
+      "type": "string",
+      "pattern": "^HYP_[0-9a-f]{12}$",
+      "description": "Unique hypothesis identifier. The HYP_ prefix is structurally recognized by Action.decision_ref validation (EB-1 check)."
+    },
+    "session_id": {
+      "type": "string",
+      "pattern": "^SESSION_[0-9a-f]{8}$"
+    },
+    "observation_refs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "description": "References to Observation artifacts grounding this hypothesis. At least one required. Supports Invariant 3 (Evidence-First)."
+    },
+    "hypothesis_text": {
+      "type": "string",
+      "description": "Primary hypothesis narrative produced by the AI engine."
+    },
+    "confidence_score": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "description": "AI-reported confidence. Advisory only. Does not affect authority."
+    },
+    "source_model": {
+      "type": "string",
+      "description": "Model identifier that produced this hypothesis (e.g., claude-sonnet-4-6)."
+    },
+    "reasoning_trace": {
+      "type": "string",
+      "description": "Free-text reasoning trace for auditor review."
+    },
+    "tier_justification": {
+      "type": "string",
+      "description": "Sprint 3a field. AI-suggested tier rationale. Non-binding."
+    },
+    "risk_flags": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "description": "Sprint 3a field. Structured risk flag entries."
+    },
+    "compliance_gaps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "description": "Sprint 3a field. Identified compliance gap entries."
+    },
+    "recommendations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Sprint 3a field. AI-generated recommendations. Advisory only."
+    },
+    "governance_narrative": {
+      "type": "string",
+      "description": "Sprint 3a field. Governance-facing narrative for auditor."
+    },
+    "entropy_assessment": {
+      "type": "string",
+      "description": "Sprint 3a field. Entropy state commentary."
+    },
+    "raw_api_response": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Full API response payload for reconstructability."
+    },
+    "cached_response": {
+      "type": "boolean",
+      "description": "True if the hypothesis was retrieved from cache rather than generated fresh."
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

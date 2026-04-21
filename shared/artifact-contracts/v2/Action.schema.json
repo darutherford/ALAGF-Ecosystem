@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://alagf.io/schemas/v2/Action.schema.json",
+  "title": "Action (v2, multi-agent extension)",
+  "description": "v2 extension of v1 Action. Adds source_agent_id and delegation_blocked to enforce Invariant 2 (Non-Bypass) across agent boundaries. If source_agent_id is non-null AND decision_ref is null, the Action MUST be rejected. Rejection, not flagging.",
+  "$comment": "Extends v1 Action. The delegation_blocked field makes the Non-Bypass check machine-verifiable in multi-agent topologies. EB-1 (HYP_ prefix rejection) remains in force.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "artifact_type",
+    "authority_level",
+    "artifact_id",
+    "session_id",
+    "decision_ref",
+    "policy_reference",
+    "delegation_blocked",
+    "created_at"
+  ],
+  "properties": {
+    "artifact_type": {
+      "type": "string",
+      "const": "Action"
+    },
+    "authority_level": {
+      "type": "string",
+      "const": "binding"
+    },
+    "artifact_id": {
+      "type": "string",
+      "pattern": "^ACT_[0-9a-f]{12}$"
+    },
+    "session_id": {
+      "type": "string",
+      "pattern": "^SESSION_[0-9a-f]{8}$"
+    },
+    "decision_ref": {
+      "type": "string",
+      "pattern": "^DEC_[0-9a-f]{12}$",
+      "description": "Reference to the authorizing Decision. Must be DEC_ prefix. HYP_ prefix rejected (EB-1)."
+    },
+    "action_type": { "type": "string" },
+    "action_details": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "observation_refs": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "policy_reference": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_agent_id": {
+      "type": ["string", "null"],
+      "description": "Net-new in v2. Reference to AgentIdentity.agent_id of the agent that originated the action request, or null if human-originated. Used in conjunction with delegation_blocked check."
+    },
+    "delegation_blocked": {
+      "type": "boolean",
+      "const": true,
+      "description": "Net-new in v2. Hard-coded true. If the orchestrator detects source_agent_id is non-null AND decision_ref is null OR invalid, the Action is REJECTED at construction. Not logged-and-continued. Governance rationale: Invariant 2 (Non-Bypass) extension into multi-agent topologies."
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

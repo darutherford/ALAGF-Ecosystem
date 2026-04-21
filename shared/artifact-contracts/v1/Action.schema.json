@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://alagf.io/schemas/v1/Action.schema.json",
+  "title": "Action",
+  "description": "Binding governance action. Authority: BINDING. Requires Decision reference. Enforces Invariant 2 (Non-Bypass): no Action without Decision. EB-1 enforces that a Hypothesis artifact_id cannot serve as decision_ref.",
+  "$comment": "Extracted from alagf-demo/artifacts/__init__.py@Action (Sprint-0 formalization). Runtime enforcement includes EB-1 HYP_ prefix rejection and mandatory policy_reference.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "artifact_type",
+    "authority_level",
+    "artifact_id",
+    "session_id",
+    "decision_ref",
+    "policy_reference",
+    "created_at"
+  ],
+  "properties": {
+    "artifact_type": {
+      "type": "string",
+      "const": "Action"
+    },
+    "authority_level": {
+      "type": "string",
+      "const": "binding"
+    },
+    "artifact_id": {
+      "type": "string",
+      "pattern": "^ACT_[0-9a-f]{12}$"
+    },
+    "session_id": {
+      "type": "string",
+      "pattern": "^SESSION_[0-9a-f]{8}$"
+    },
+    "decision_ref": {
+      "type": "string",
+      "pattern": "^DEC_[0-9a-f]{12}$",
+      "description": "Reference to the authorizing Decision artifact. Must match DEC_ prefix. HYP_ prefix is rejected (EB-1). Enforces Invariant 2 (Non-Bypass)."
+    },
+    "action_type": {
+      "type": "string",
+      "description": "Classifier for the action kind."
+    },
+    "action_details": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Structured action payload."
+    },
+    "observation_refs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Optional references to the observational evidence trail."
+    },
+    "policy_reference": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Policy identifier authorizing this action. Required. Enforces Invariant 3 (Evidence-First)."
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

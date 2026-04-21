@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://alagf.io/schemas/orchestration/v1/StressObservation.schema.json",
+  "title": "StressObservation",
+  "description": "Raw result from the M2 Stress and Evaluation Engine battery. Authority: OBSERVATIONAL ONLY. Must not suggest mitigations, reference tiers, or infer risk state. Observational-evidence contract supporting Invariant 3 (Evidence-First).",
+  "$comment": "Extracted from alagf-demo/artifacts/__init__.py@StressObservation (Sprint-0 formalization). Orchestration-support contract.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "artifact_type",
+    "authority_level",
+    "observation_id",
+    "session_id",
+    "stress_type",
+    "reproducibility_hash",
+    "timestamp"
+  ],
+  "properties": {
+    "artifact_type": {
+      "type": "string",
+      "const": "StressObservation"
+    },
+    "authority_level": {
+      "type": "string",
+      "const": "observational"
+    },
+    "observation_id": {
+      "type": "string",
+      "pattern": "^SOBS_[0-9a-f]{12}$"
+    },
+    "session_id": {
+      "type": "string",
+      "pattern": "^SESSION_[0-9a-f]{8}$"
+    },
+    "stress_type": {
+      "type": "string",
+      "enum": [
+        "load",
+        "safety",
+        "bias",
+        "robustness",
+        "hallucination",
+        "adversarial",
+        "edge_case",
+        "compliance"
+      ],
+      "description": "Canonical stress test classification. Values sourced from VALID_STRESS_TYPES constant."
+    },
+    "severity_score": {
+      "type": "number",
+      "description": "Raw severity measurement. No tier mapping at this layer."
+    },
+    "reproducibility_hash": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Hash of stress inputs enabling reproducibility. Required. Supports Invariant 4 (Reconstructability)."
+    },
+    "raw_output": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Raw stress engine output payload."
+    },
+    "context": {
+      "type": "string",
+      "description": "Free-text context about stress execution conditions."
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

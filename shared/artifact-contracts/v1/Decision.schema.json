@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://alagf.io/schemas/v1/Decision.schema.json",
+  "title": "Decision",
+  "description": "Human-authoritative governance decision. Authority: BINDING. Requires human auditor_id. Only humans may produce binding outcomes (Invariant 1).",
+  "$comment": "Extracted from alagf-demo/artifacts/__init__.py@Decision (Sprint-0 formalization).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "artifact_type",
+    "authority_level",
+    "artifact_id",
+    "session_id",
+    "auditor_id",
+    "observation_refs",
+    "created_at"
+  ],
+  "properties": {
+    "artifact_type": {
+      "type": "string",
+      "const": "Decision"
+    },
+    "authority_level": {
+      "type": "string",
+      "const": "binding"
+    },
+    "artifact_id": {
+      "type": "string",
+      "pattern": "^DEC_[0-9a-f]{12}$",
+      "description": "Unique decision identifier. Only DEC_ prefix IDs may authorize Actions (EB-1 enforcement)."
+    },
+    "session_id": {
+      "type": "string",
+      "pattern": "^SESSION_[0-9a-f]{8}$"
+    },
+    "auditor_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Human auditor identifier. Required. Enforces Invariant 1 (Authority). Rejection, not warning, on absence."
+    },
+    "decision_text": {
+      "type": "string",
+      "description": "Decision narrative authored by the human auditor."
+    },
+    "observation_refs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "description": "References to Observation artifacts. At least one required. Enforces Invariant 3 (Evidence-First)."
+    },
+    "hypothesis_refs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Optional references to Hypothesis artifacts reviewed prior to decision. Hypotheses are advisory, not required."
+    },
+    "policy_reference": {
+      "type": "string",
+      "description": "Policy identifier cited by the decision."
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

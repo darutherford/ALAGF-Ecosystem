@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://alagf.io/schemas/orchestration/v1/MetricObservation.schema.json",
+  "title": "MetricObservation",
+  "description": "Computed metric value from the M3 Metrics and Telemetry Engine. Authority: OBSERVATIONAL ONLY. Must not escalate, label outcomes, or suggest governance actions. Produces evidence consumed by Decision artifacts under Invariant 3 (Evidence-First).",
+  "$comment": "Extracted from alagf-demo/artifacts/__init__.py@MetricObservation (Sprint-0 formalization). metric_type constrained to CANONICAL_METRICS. spc_flag constrained to VALID_SPC_FLAGS.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "artifact_type",
+    "authority_level",
+    "observation_id",
+    "session_id",
+    "metric_type",
+    "value",
+    "spc_flag",
+    "timestamp"
+  ],
+  "properties": {
+    "artifact_type": {
+      "type": "string",
+      "const": "MetricObservation"
+    },
+    "authority_level": {
+      "type": "string",
+      "const": "observational"
+    },
+    "observation_id": {
+      "type": "string",
+      "pattern": "^MOBS_[0-9a-f]{12}$"
+    },
+    "session_id": {
+      "type": "string",
+      "pattern": "^SESSION_[0-9a-f]{8}$"
+    },
+    "metric_type": {
+      "type": "string",
+      "enum": ["BAR", "ECPI", "IQD", "PTDI", "AHRS"],
+      "description": "Canonical BME metric identifier. Enforced against CANONICAL_METRICS frozenset at runtime."
+    },
+    "value": {
+      "type": "number",
+      "description": "Measured metric value."
+    },
+    "baseline_reference": {
+      "type": "number",
+      "description": "Baseline against which the value is compared."
+    },
+    "control_limit_upper": {
+      "type": "number",
+      "description": "Upper control limit for SPC evaluation."
+    },
+    "control_limit_lower": {
+      "type": "number",
+      "description": "Lower control limit for SPC evaluation."
+    },
+    "spc_flag": {
+      "type": "string",
+      "enum": ["in_control", "warning", "out_of_control"],
+      "description": "Statistical process control state. Enforced against VALID_SPC_FLAGS at runtime. Observational only; does not trigger binding action."
+    },
+    "window_id": {
+      "type": "string",
+      "description": "Identifier of the telemetry window this observation belongs to."
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

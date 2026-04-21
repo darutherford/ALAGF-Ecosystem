@@ -1,0 +1,72 @@
+﻿# ALAGF-Ecosystem .gitignore
+# Sprint-0 baseline
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Node / TypeScript
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnp.*
+dist/
+build/
+.next/
+.cache/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# R
+.Rhistory
+.RData
+.Ruserdata
+*.Rproj.user/
+
+# Logs
+*.log
+logs/
+
+# Ledger local stores (NEVER commit live ledger data)
+multiagent/ledger/append_only_store/*.jsonl
+multiagent/ledger/hash_chain/*.db
+demo/ledger/append_only_store/*.jsonl
+demo/ledger/hash_chain/*.db
+
+# Secrets
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# Evidence packs (generated outputs â€” regenerate on demand)
+docs/dissertation-artifacts/evidence_packs/*.zip

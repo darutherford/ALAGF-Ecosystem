@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://alagf.io/schemas/v1/AuditSession.schema.json",
+  "title": "AuditSession",
+  "description": "Root artifact for an ALAGF audit session. Authority: ORCHESTRATION. Controls session flow; does not produce binding conclusions.",
+  "$comment": "Extracted from alagf-demo/artifacts/__init__.py@AuditSession (Sprint-0 formalization, see /shared/artifact-contracts/CHANGELOG.md).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "artifact_type",
+    "authority_level",
+    "artifact_id",
+    "session_id",
+    "audit_target",
+    "auditor_id",
+    "created_at"
+  ],
+  "properties": {
+    "artifact_type": {
+      "type": "string",
+      "const": "AuditSession",
+      "description": "Fixed artifact type discriminator."
+    },
+    "authority_level": {
+      "type": "string",
+      "const": "orchestration",
+      "description": "Fixed authority level. Orchestration artifacts do not produce binding outcomes."
+    },
+    "artifact_id": {
+      "type": "string",
+      "pattern": "^SES_[0-9a-f]{12}$",
+      "description": "Unique artifact identifier. Format: SES_<12 hex chars>."
+    },
+    "session_id": {
+      "type": "string",
+      "pattern": "^SESSION_[0-9a-f]{8}$",
+      "description": "Unique session identifier. Format: SESSION_<8 hex chars>."
+    },
+    "audit_target": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Identifier of the system or model under audit. Required."
+    },
+    "auditor_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Identifier of the human auditor opening the session. Required. Invariant 1 (Authority) provenance anchor."
+    },
+    "session_purpose": {
+      "type": "string",
+      "description": "Free-text description of audit intent."
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 UTC timestamp of session creation."
+    }
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://alagf.io/schemas/orchestration/v1/EnvelopeValidated.schema.json",
+  "title": "EnvelopeValidated",
+  "description": "Boundary handshake confirmation artifact. Authority: ORCHESTRATION. Emitted at session boundary after envelope validation checks complete.",
+  "$comment": "Extracted from alagf-demo/artifacts/__init__.py@EnvelopeValidated (Sprint-0 formalization). Orchestration-support contract, not a canonical lifecycle artifact.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "artifact_type",
+    "authority_level",
+    "artifact_id",
+    "session_id",
+    "validation_status",
+    "created_at"
+  ],
+  "properties": {
+    "artifact_type": {
+      "type": "string",
+      "const": "EnvelopeValidated"
+    },
+    "authority_level": {
+      "type": "string",
+      "const": "orchestration"
+    },
+    "artifact_id": {
+      "type": "string",
+      "pattern": "^ENV_[0-9a-f]{12}$"
+    },
+    "session_id": {
+      "type": "string",
+      "pattern": "^SESSION_[0-9a-f]{8}$"
+    },
+    "validation_status": {
+      "type": "string",
+      "enum": ["passed", "failed"],
+      "description": "Boundary handshake outcome."
+    },
+    "boundary_checks": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "boolean"
+      },
+      "description": "Per-check results for each boundary validation rule."
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}
