@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://alagf.io/schemas/v2/events/UNREGISTERED_AGENT_OUTPUT.payload.schema.json",
+  "title": "UNREGISTERED_AGENT_OUTPUT event payload",
+  "description": "Error event emitted when an artifact-emit attempt references an unregistered or inactive agent_id. Governance rationale: Invariant 4 (Reconstructability) — every failure path produces a ledger event. No silent failures.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["attempted_agent_id", "artifact_type", "rejection_reason"],
+  "properties": {
+    "attempted_agent_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "artifact_type": {
+      "type": "string",
+      "description": "Type of artifact whose emission was rejected (e.g., Observation, Hypothesis)."
+    },
+    "rejection_reason": {
+      "type": "string",
+      "enum": ["NOT_REGISTERED", "SUSPENDED", "REVOKED", "SESSION_MISMATCH"],
+      "description": "Structured rejection reason. NOT_REGISTERED: no AgentIdentity for this agent_id. SUSPENDED/REVOKED: agent exists but status forbids output. SESSION_MISMATCH: agent registered in a different session."
+    }
+  }
+}

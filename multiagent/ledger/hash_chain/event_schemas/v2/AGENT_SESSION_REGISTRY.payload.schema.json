@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://alagf.io/schemas/v2/events/AGENT_SESSION_REGISTRY.payload.schema.json",
+  "title": "AGENT_SESSION_REGISTRY event payload",
+  "description": "Manifest snapshot of all agents ACTIVE in a session at a given point. Governance rationale: Invariant 4 (Reconstructability) — answers 'which agents were active at time T' without requiring event replay across the full session.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["session_id", "active_agents", "snapshot_timestamp"],
+  "properties": {
+    "session_id": {
+      "type": "string",
+      "pattern": "^SESSION_[0-9a-f]{8}$"
+    },
+    "active_agents": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["agent_id", "agent_type", "registration_event_id"],
+        "properties": {
+          "agent_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "agent_type": {
+            "type": "string",
+            "enum": ["ORCHESTRATOR", "SUB_AGENT", "VALIDATOR", "HUMAN_PROXY"]
+          },
+          "registration_event_id": {
+            "type": "string",
+            "pattern": "^evt_[0-9A-HJKMNP-TV-Z]{26}$"
+          }
+        }
+      }
+    },
+    "snapshot_timestamp": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

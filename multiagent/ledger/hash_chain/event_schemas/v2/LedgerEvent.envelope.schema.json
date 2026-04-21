@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://alagf.io/schemas/v2/LedgerEvent.envelope.schema.json",
+  "title": "LedgerEvent envelope (v2)",
+  "description": "Append-only ledger event envelope. Every runtime event in the /multiagent track is wrapped in this structure with SHA-256 hash chaining. Governance rationale: Invariant 4 (Reconstructability) — events are self-describing and causally linked; ledger alone suffices to reconstruct session history.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "event_id",
+    "event_type",
+    "schema_version",
+    "session_id",
+    "sequence_number",
+    "timestamp_utc",
+    "auditor_id",
+    "actor",
+    "causal_refs",
+    "payload",
+    "prev_hash",
+    "event_hash"
+  ],
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "pattern": "^evt_[0-9A-HJKMNP-TV-Z]{26}$",
+      "description": "ULID-based event identifier. Monotonic time-ordered. Crockford base32."
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "AGENT_REGISTERED",
+        "AGENT_SUSPENDED",
+        "AGENT_REVOKED",
+        "UNREGISTERED_AGENT_OUTPUT",
+        "AGENT_SESSION_REGISTRY"
+      ],
+      "description": "Sprint-1 event type registry. Additional types added in later sprints."
+    },
+    "schema_version": {
+      "type": "string",
+      "const": "v2"
+    },
+    "session_id": {
+      "type": "string",
+      "pattern": "^SESSION_[0-9a-f]{8}$"
+    },
+    "sequence_number": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Monotonic sequence number within a session. Authoritative ordering field."
+    },
+    "timestamp_utc": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 UTC timestamp with microsecond precision."
+    },
+    "auditor_id": {
+      "type": "string",
+      "pattern": "^AUDITOR_[A-Z0-9_]+$",
+      "description": "Orchestrator-layer stricter pattern than v1 schema permits. Enforces Invariant 1 provenance at the event level."
+    },
+    "actor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["actor_type", "actor_id"],
+      "properties": {
+        "actor_type": {
+          "type": "string",
+          "enum": ["HUMAN", "AGENT", "ORCHESTRATOR"]
+        },
+        "actor_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "causal_refs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["prior_event_id", "referenced_artifact_id", "referenced_event_id"],
+      "properties": {
+        "prior_event_id": {
+          "type": ["string", "null"],
+          "description": "ULID of a causally prior event (e.g., AGENT_SUSPENDED references its AGENT_REGISTERED)."
+        },
+        "referenced_artifact_id": {
+          "type": ["string", "null"],
+          "description": "ID of the artifact this event acts on (e.g., agent_id for agent-lifecycle events)."
+        },
+        "referenced_event_id": {
+          "type": ["string", "null"],
+          "description": "Secondary event reference slot. Reserved for future cross-event links."
+        }
+      }
+    },
+    "payload": {
+      "type": "object",
+      "description": "Event-type-specific payload. Validated against /multiagent/ledger/hash_chain/event_schemas/v2/<event_type>.payload.schema.json."
+    },
+    "prev_hash": {
+      "type": ["string", "null"],
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "SHA-256 of the canonical-JSON serialization of the prior event in this session's chain. Null for genesis event."
+    },
+    "event_hash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "SHA-256 over the canonical-JSON of this event with event_hash removed. Computed at write time."
+    }
+  }
+}

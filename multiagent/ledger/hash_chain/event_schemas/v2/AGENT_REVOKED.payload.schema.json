@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://alagf.io/schemas/v2/events/AGENT_REVOKED.payload.schema.json",
+  "title": "AGENT_REVOKED event payload",
+  "description": "Payload for AGENT_REVOKED ledger events. Governance rationale: Invariant 3 (Evidence-First) — revocation must reference the prior registration event. Revocation is terminal; re-activation requires a new agent_id.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["agent_id", "reason", "prior_registration_event_id"],
+  "properties": {
+    "agent_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1
+    },
+    "prior_registration_event_id": {
+      "type": "string",
+      "pattern": "^evt_[0-9A-HJKMNP-TV-Z]{26}$"
+    }
+  }
+}

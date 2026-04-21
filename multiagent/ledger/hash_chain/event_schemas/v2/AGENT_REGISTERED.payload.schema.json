@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://alagf.io/schemas/v2/events/AGENT_REGISTERED.payload.schema.json",
+  "title": "AGENT_REGISTERED event payload",
+  "description": "Payload for AGENT_REGISTERED ledger events. Carries the full AgentIdentity artifact. Governance rationale: Invariant 4 (Reconstructability) — the ledger alone must answer who was registered, when, and by whom.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["agent_identity"],
+  "properties": {
+    "agent_identity": {
+      "type": "object",
+      "description": "Full AgentIdentity artifact as defined in /shared/artifact-contracts/v2/AgentIdentity.schema.json. Validated separately by the AgentIdentity schema at registration time."
+    }
+  }
+}
