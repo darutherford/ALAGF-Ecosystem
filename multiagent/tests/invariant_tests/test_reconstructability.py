@@ -17,6 +17,17 @@ Sprint-2 extensions:
       HandshakeError is raised (no silent failure).
     - Hash chain integrity verifies across mixed event types
       (AGENT_REGISTERED, BOUNDARY_HANDSHAKE, AGENT_HANDOFF).
+
+Sprint-3 extensions:
+    - Given only the ledger, reconstruct the full synthesis tree for a
+      session, tracing upstream_hypothesis_refs back to the Observation
+      root (depth=0 floor).
+    - DEPTH_LIMIT_REACHED is emitted BEFORE DepthLimitExceededError is
+      raised (no silent failure).
+    - is_session_depth_frozen is derivable purely from ledger events.
+    - Hash chain integrity verifies across all sprint event types
+      (AGENT_REGISTERED + BOUNDARY_HANDSHAKE + AGENT_HANDOFF +
+      HYPOTHESIS_REGISTERED + DEPTH_LIMIT_REACHED).
 """
 
 from __future__ import annotations
@@ -374,3 +385,199 @@ def test_tampered_handoff_event_detected(
 
     with pytest.raises(LedgerIntegrityError):
         read_session_events(session_id)
+
+
+# ---------------------------------------------------------------------------
+# Sprint-3 extensions: synthesis reconstruction and mixed hash chain
+# ---------------------------------------------------------------------------
+
+from multiagent.exceptions import DepthLimitExceededError
+from multiagent.orchestrator.synthesis.depth import is_session_depth_frozen
+from multiagent.orchestrator.synthesis.fs_adapter import FsLedger
+from multiagent.orchestrator.synthesis.fs_agent_registry import FsAgentRegistry
+from multiagent.orchestrator.synthesis.hypothesis import emit_hypothesis
+
+
+def _reconstruct_synthesis_tree(events: list[dict]) -> dict[str, dict]:
+    """Pure-ledger derivation of the synthesis tree: artifact_id -> node."""
+    tree: dict[str, dict] = {}
+    for e in events:
+        if e["event_type"] != "HYPOTHESIS_REGISTERED":
+            continue
+        hyp = e["payload"]["hypothesis"]
+        tree[hyp["artifact_id"]] = {
+            "depth": hyp["synthesis_depth"],
+            "parents": hyp["upstream_hypothesis_refs"],
+            "observations": hyp["observation_refs"],
+            "source_agent": e["actor"]["actor_id"],
+        }
+    return tree
+
+
+def test_ledger_alone_reconstructs_synthesis_tree(
+    session_id: str, auditor_id: str
+) -> None:
+    """Given only the ledger, reconstruct the synthesis tree back to the
+    Observation root (depth=0 floor)."""
+    agent = register_agent(
+        session_id=session_id, auditor_id=auditor_id,
+        agent_type="ORCHESTRATOR", model_id="claude-sonnet-4-6",
+        provider="anthropic", trust_tier="T1", authority_scope="HYPOTHESES",
+        max_synthesis_depth=5,
+    )
+    ledger = FsLedger()
+    registry = FsAgentRegistry()
+
+    def _emit(upstream=None):
+        return emit_hypothesis(
+            session_id=session_id,
+            source_agent_id=agent["agent_id"],
+            observation_refs=["OBS_000000000001"],
+            upstream_hypothesis_refs=upstream or [],
+            composite_upstream_bme_score=0.1,
+            auditor_id=auditor_id,
+            registry=registry, ledger=ledger, ledger_writer=ledger,
+        )["payload"]["hypothesis"]["artifact_id"]
+
+    h1 = _emit()
+    h2 = _emit(upstream=[h1])
+    h3 = _emit(upstream=[h2])
+
+    events = read_session_events(session_id)
+    tree = _reconstruct_synthesis_tree(events)
+    assert tree[h1]["depth"] == 1 and tree[h1]["parents"] == []
+    assert tree[h2]["depth"] == 2 and tree[h2]["parents"] == [h1]
+    assert tree[h3]["depth"] == 3 and tree[h3]["parents"] == [h2]
+    # Each carries observation_refs (decision g-i)
+    for node in tree.values():
+        assert len(node["observations"]) >= 1
+
+
+def test_depth_limit_reached_emitted_before_exception(
+    session_id: str, auditor_id: str
+) -> None:
+    """No silent failure. DEPTH_LIMIT_REACHED must be written BEFORE
+    DepthLimitExceededError propagates."""
+    agent = register_agent(
+        session_id=session_id, auditor_id=auditor_id,
+        agent_type="ORCHESTRATOR", model_id="claude-sonnet-4-6",
+        provider="anthropic", trust_tier="T1", authority_scope="HYPOTHESES",
+        max_synthesis_depth=1,
+    )
+    ledger = FsLedger()
+    registry = FsAgentRegistry()
+
+    def _emit(upstream=None):
+        return emit_hypothesis(
+            session_id=session_id,
+            source_agent_id=agent["agent_id"],
+            observation_refs=["OBS_000000000001"],
+            upstream_hypothesis_refs=upstream or [],
+            composite_upstream_bme_score=0.1,
+            auditor_id=auditor_id,
+            registry=registry, ledger=ledger, ledger_writer=ledger,
+        )
+
+    h1 = _emit()["payload"]["hypothesis"]["artifact_id"]
+    with pytest.raises(DepthLimitExceededError):
+        _emit(upstream=[h1])
+
+    events = read_session_events(session_id)
+    assert events[-1]["event_type"] == "DEPTH_LIMIT_REACHED"
+    assert (
+        events[-1]["payload"]["rejection_reason"]
+        == "CHAIN_MINIMUM_CEILING_EXCEEDED"
+    )
+
+
+def test_is_session_depth_frozen_derives_from_ledger(
+    session_id: str, auditor_id: str
+) -> None:
+    """Freeze state is a pure function of ledger events."""
+    agent = register_agent(
+        session_id=session_id, auditor_id=auditor_id,
+        agent_type="ORCHESTRATOR", model_id="claude-sonnet-4-6",
+        provider="anthropic", trust_tier="T1", authority_scope="HYPOTHESES",
+        max_synthesis_depth=1,
+    )
+    ledger = FsLedger()
+    registry = FsAgentRegistry()
+    assert not is_session_depth_frozen(session_id=session_id, ledger=ledger)
+
+    h1 = emit_hypothesis(
+        session_id=session_id,
+        source_agent_id=agent["agent_id"],
+        observation_refs=["OBS_000000000001"],
+        upstream_hypothesis_refs=[],
+        composite_upstream_bme_score=0.1,
+        auditor_id=auditor_id,
+        registry=registry, ledger=ledger, ledger_writer=ledger,
+    )["payload"]["hypothesis"]["artifact_id"]
+
+    with pytest.raises(DepthLimitExceededError):
+        emit_hypothesis(
+            session_id=session_id,
+            source_agent_id=agent["agent_id"],
+            observation_refs=["OBS_000000000001"],
+            upstream_hypothesis_refs=[h1],
+            composite_upstream_bme_score=0.1,
+            auditor_id=auditor_id,
+            registry=registry, ledger=ledger, ledger_writer=ledger,
+        )
+
+    # Session-level freeze indicator
+    assert is_session_depth_frozen(session_id=session_id, ledger=ledger)
+    # Path-scoped: refs including h1 are frozen
+    assert is_session_depth_frozen(
+        session_id=session_id, ledger=ledger,
+        upstream_hypothesis_refs=[h1],
+    )
+    # Path-scoped: empty refs (fresh root) are NOT frozen
+    assert not is_session_depth_frozen(
+        session_id=session_id, ledger=ledger,
+        upstream_hypothesis_refs=[],
+    )
+
+
+def test_hash_chain_integrity_across_sprint3_event_types(
+    session_id: str, auditor_id: str
+) -> None:
+    """Replay verifies across all sprint event types, including the two
+    Sprint-3 additions: HYPOTHESIS_REGISTERED and DEPTH_LIMIT_REACHED."""
+    agent = register_agent(
+        session_id=session_id, auditor_id=auditor_id,
+        agent_type="ORCHESTRATOR", model_id="claude-sonnet-4-6",
+        provider="anthropic", trust_tier="T1", authority_scope="HYPOTHESES",
+        max_synthesis_depth=1,
+    )
+    ledger = FsLedger()
+    registry = FsAgentRegistry()
+
+    h1 = emit_hypothesis(
+        session_id=session_id,
+        source_agent_id=agent["agent_id"],
+        observation_refs=["OBS_000000000001"],
+        upstream_hypothesis_refs=[],
+        composite_upstream_bme_score=0.1,
+        auditor_id=auditor_id,
+        registry=registry, ledger=ledger, ledger_writer=ledger,
+    )["payload"]["hypothesis"]["artifact_id"]
+
+    with pytest.raises(DepthLimitExceededError):
+        emit_hypothesis(
+            session_id=session_id,
+            source_agent_id=agent["agent_id"],
+            observation_refs=["OBS_000000000001"],
+            upstream_hypothesis_refs=[h1],
+            composite_upstream_bme_score=0.1,
+            auditor_id=auditor_id,
+            registry=registry, ledger=ledger, ledger_writer=ledger,
+        )
+
+    events = read_session_events(session_id)
+    types = [e["event_type"] for e in events]
+    assert "HYPOTHESIS_REGISTERED" in types
+    assert "DEPTH_LIMIT_REACHED" in types
+    # Prev-hash continuity across the mixed event type sequence
+    for i in range(1, len(events)):
+        assert events[i]["prev_hash"] == events[i - 1]["event_hash"]

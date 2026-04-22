@@ -17,6 +17,14 @@ Sprint-2 extensions:
     - A handoff attempting to transport a binding-authority payload is
       rejected with BoundaryViolationError and produces a BOUNDARY_VIOLATION
       event with rejection_reason BINDING_PAYLOAD.
+
+Sprint-3 extensions:
+    - Hypothesis.non_authoritative_flag is hard-coded true at both the
+      schema level (const: true) and the factory level (AuthorityViolationError
+      on any non-true value).
+    - Hypothesis emission requires a registered ACTIVE source agent; emission
+      against an unregistered agent raises UnregisteredAgentError and emits
+      UNREGISTERED_AGENT_OUTPUT.
 """
 
 from __future__ import annotations
@@ -29,6 +37,7 @@ from multiagent.exceptions import (
     ArtifactValidationError,
     AuthorityViolationError,
     BoundaryViolationError,
+    UnregisteredAgentError,
 )
 from multiagent.ledger.hash_chain.events import (
     append_event,
@@ -225,3 +234,139 @@ def test_handoff_rejects_binding_payload(
     violations = [e for e in events if e["event_type"] == "BOUNDARY_VIOLATION"]
     assert len(violations) == 1
     assert violations[0]["payload"]["rejection_reason"] == "BINDING_PAYLOAD"
+
+
+# ---------------------------------------------------------------------------
+# Sprint-3 extensions: Hypothesis authority enforcement
+# ---------------------------------------------------------------------------
+
+from multiagent.artifacts.Hypothesis import (
+    HypothesisValidationError,
+    build_hypothesis,
+    validate_hypothesis,
+)
+from multiagent.orchestrator.synthesis.fs_adapter import FsLedger
+from multiagent.orchestrator.synthesis.fs_agent_registry import FsAgentRegistry
+from multiagent.orchestrator.synthesis.hypothesis import emit_hypothesis
+
+
+def _build_valid_hypothesis(session_id: str, **overrides) -> dict:
+    """Helper that builds a minimally-valid Hypothesis with sensible defaults."""
+    kwargs = dict(
+        session_id=session_id,
+        observation_refs=["OBS_000000000001"],
+        synthesis_depth=1,
+        upstream_hypothesis_refs=[],
+        composite_upstream_bme_score=0.1,
+    )
+    kwargs.update(overrides)
+    return build_hypothesis(**kwargs)
+
+
+def test_hypothesis_factory_rejects_non_authoritative_flag_false(
+    session_id: str,
+) -> None:
+    """Invariant 1: override attempts on non_authoritative_flag raise
+    AuthorityViolationError at the factory level."""
+    with pytest.raises(AuthorityViolationError):
+        _build_valid_hypothesis(
+            session_id=session_id,
+            non_authoritative_flag=False,
+        )
+
+
+def test_hypothesis_factory_rejects_non_authoritative_flag_none(
+    session_id: str,
+) -> None:
+    with pytest.raises(AuthorityViolationError):
+        _build_valid_hypothesis(
+            session_id=session_id,
+            non_authoritative_flag=None,  # type: ignore[arg-type]
+        )
+
+
+def test_hypothesis_validate_rejects_tampered_flag(session_id: str) -> None:
+    """Invariant 1 double-enforcement: a manually-tampered artifact with
+    non_authoritative_flag=False is rejected by validate_hypothesis."""
+    artifact = _build_valid_hypothesis(session_id=session_id)
+    artifact["non_authoritative_flag"] = False
+    with pytest.raises(AuthorityViolationError):
+        validate_hypothesis(artifact)
+
+
+def test_hypothesis_factory_hardcodes_non_authoritative_flag(
+    session_id: str,
+) -> None:
+    """Default construction produces non_authoritative_flag: true,
+    authority_level: 'non_binding', artifact_type: 'Hypothesis'."""
+    artifact = _build_valid_hypothesis(session_id=session_id)
+    assert artifact["non_authoritative_flag"] is True
+    assert artifact["authority_level"] == "non_binding"
+    assert artifact["artifact_type"] == "Hypothesis"
+
+
+def test_hypothesis_emission_requires_registered_source_agent(
+    session_id: str, auditor_id: str
+) -> None:
+    """Invariant 1: AI outputs must have AI-agent provenance. Emission
+    against an unregistered agent raises UnregisteredAgentError and emits
+    UNREGISTERED_AGENT_OUTPUT before raising."""
+    ledger = FsLedger()
+    registry = FsAgentRegistry()
+    with pytest.raises(UnregisteredAgentError):
+        emit_hypothesis(
+            session_id=session_id,
+            source_agent_id="AGT_000000000000",  # not registered
+            observation_refs=["OBS_000000000001"],
+            upstream_hypothesis_refs=[],
+            composite_upstream_bme_score=0.1,
+            auditor_id=auditor_id,
+            registry=registry,
+            ledger=ledger,
+            ledger_writer=ledger,
+        )
+
+    events = read_session_events(session_id)
+    assert any(
+        e["event_type"] == "UNREGISTERED_AGENT_OUTPUT" for e in events
+    )
+
+
+def test_hypothesis_emission_requires_active_source_agent(
+    session_id: str, auditor_id: str
+) -> None:
+    """Invariant 1: A SUSPENDED agent cannot emit a Hypothesis."""
+    from multiagent.orchestrator.agent_lifecycle.registration import (
+        suspend_agent,
+    )
+
+    orch = register_agent(
+        session_id=session_id, auditor_id=auditor_id,
+        agent_type="ORCHESTRATOR", model_id="claude-sonnet-4-6",
+        provider="anthropic", trust_tier="T1", authority_scope="HYPOTHESES",
+        max_synthesis_depth=3,
+    )
+    suspend_agent(
+        agent_id=orch["agent_id"], auditor_id=auditor_id, reason="test"
+    )
+
+    ledger = FsLedger()
+    registry = FsAgentRegistry()
+    with pytest.raises(UnregisteredAgentError):
+        emit_hypothesis(
+            session_id=session_id,
+            source_agent_id=orch["agent_id"],
+            observation_refs=["OBS_000000000001"],
+            upstream_hypothesis_refs=[],
+            composite_upstream_bme_score=0.1,
+            auditor_id=auditor_id,
+            registry=registry,
+            ledger=ledger,
+            ledger_writer=ledger,
+        )
+
+
+def test_hypothesis_schema_rejects_invalid_session_id_pattern() -> None:
+    """Invariant 3/schema: Hypothesis session_id must match SESSION_<8 hex>."""
+    with pytest.raises((HypothesisValidationError, ArtifactValidationError)):
+        _build_valid_hypothesis(session_id="not-a-session-id")
