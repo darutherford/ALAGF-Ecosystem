@@ -9,6 +9,14 @@ Sprint-1 tests:
       session at any point in time.
     - UNREGISTERED_AGENT_OUTPUT is emitted BEFORE the exception is raised.
     - The hash chain is verified on replay; tampering is detected.
+
+Sprint-2 extensions:
+    - Given only the ledger, reconstruct the full handoff chain for a
+      session, tracing payload_artifact_id flow through source/target pairs.
+    - BOUNDARY_VIOLATION events are emitted BEFORE BoundaryViolationError or
+      HandshakeError is raised (no silent failure).
+    - Hash chain integrity verifies across mixed event types
+      (AGENT_REGISTERED, BOUNDARY_HANDSHAKE, AGENT_HANDOFF).
 """
 
 from __future__ import annotations
@@ -19,6 +27,8 @@ from pathlib import Path
 import pytest
 
 from multiagent.exceptions import (
+    BoundaryViolationError,
+    HandshakeError,
     LedgerIntegrityError,
     UnregisteredAgentError,
 )
@@ -28,6 +38,10 @@ from multiagent.orchestrator.agent_lifecycle.registration import (
     reject_unregistered_output,
     revoke_agent,
     suspend_agent,
+)
+from multiagent.orchestrator.boundary_enforcement import (
+    emit_handoff,
+    emit_handshake,
 )
 
 
@@ -152,3 +166,211 @@ def test_hash_chain_verifies_clean_replay(
     assert [e["sequence_number"] for e in events] == [1, 2]
     assert events[0]["prev_hash"] is None
     assert events[1]["prev_hash"] == events[0]["event_hash"]
+
+
+# ---------------------------------------------------------------------------
+# Sprint-2 extensions: handoff-chain reconstruction and mixed hash chain
+# ---------------------------------------------------------------------------
+
+
+def _reconstruct_handoff_chain(events: list[dict]) -> list[tuple[str, str, str]]:
+    """Pure-ledger derivation of the handoff chain as (source, target, payload)."""
+    chain: list[tuple[str, str, str]] = []
+    for e in events:
+        if e["event_type"] != "AGENT_HANDOFF":
+            continue
+        h = e["payload"]["agent_handoff"]
+        chain.append(
+            (h["source_agent_id"], h["target_agent_id"], h["payload_artifact_id"])
+        )
+    return chain
+
+
+def test_ledger_alone_reconstructs_handoff_chain(
+    session_id: str, auditor_id: str
+) -> None:
+    """Given only the event log, reconstruct the full sequence of handoffs."""
+    orch = register_agent(
+        session_id=session_id, auditor_id=auditor_id,
+        agent_type="ORCHESTRATOR", model_id="claude-sonnet-4-6",
+        provider="anthropic", trust_tier="T1", authority_scope="ROUTING",
+        max_synthesis_depth=3,
+    )
+    sub_a = register_agent(
+        session_id=session_id, auditor_id=auditor_id,
+        agent_type="SUB_AGENT", model_id="claude-sonnet-4-6",
+        provider="anthropic", trust_tier="T2", authority_scope="HYPOTHESES",
+        max_synthesis_depth=1, parent_agent_id=orch["agent_id"],
+    )
+    sub_b = register_agent(
+        session_id=session_id, auditor_id=auditor_id,
+        agent_type="SUB_AGENT", model_id="claude-sonnet-4-6",
+        provider="anthropic", trust_tier="T2", authority_scope="HYPOTHESES",
+        max_synthesis_depth=1, parent_agent_id=orch["agent_id"],
+    )
+
+    # Orchestrator to sub_a (no handshake required).
+    emit_handoff(
+        session_id=session_id, auditor_id=auditor_id,
+        source_agent_id=orch["agent_id"], target_agent_id=sub_a["agent_id"],
+        payload_artifact_id=sub_a["agent_id"],
+    )
+    # Peer handshake, then peer handoff.
+    emit_handshake(
+        session_id=session_id, auditor_id=auditor_id,
+        source_agent_id=sub_a["agent_id"], target_agent_id=sub_b["agent_id"],
+    )
+    emit_handoff(
+        session_id=session_id, auditor_id=auditor_id,
+        source_agent_id=sub_a["agent_id"], target_agent_id=sub_b["agent_id"],
+        payload_artifact_id=orch["agent_id"],  # arbitrary registered payload
+    )
+
+    events = read_session_events(session_id)
+    chain = _reconstruct_handoff_chain(events)
+    assert chain == [
+        (orch["agent_id"], sub_a["agent_id"], sub_a["agent_id"]),
+        (sub_a["agent_id"], sub_b["agent_id"], orch["agent_id"]),
+    ]
+
+
+def test_boundary_violation_emitted_before_exception(
+    session_id: str, auditor_id: str
+) -> None:
+    """No silent failure. BOUNDARY_VIOLATION must be written BEFORE the raise."""
+    orch = register_agent(
+        session_id=session_id, auditor_id=auditor_id,
+        agent_type="ORCHESTRATOR", model_id="claude-sonnet-4-6",
+        provider="anthropic", trust_tier="T1", authority_scope="ROUTING",
+        max_synthesis_depth=1,
+    )
+    with pytest.raises(BoundaryViolationError):
+        emit_handoff(
+            session_id=session_id, auditor_id=auditor_id,
+            source_agent_id=orch["agent_id"],
+            target_agent_id="AGT_ghostghost01",  # unregistered target
+            payload_artifact_id=orch["agent_id"],
+        )
+    events = read_session_events(session_id)
+    violations = [e for e in events if e["event_type"] == "BOUNDARY_VIOLATION"]
+    assert len(violations) == 1
+    assert violations[0]["payload"]["rejection_reason"] == "TARGET_UNREGISTERED"
+
+
+def test_handshake_error_emitted_before_exception(
+    session_id: str, auditor_id: str
+) -> None:
+    """Peer handoff without prior handshake: event emitted BEFORE HandshakeError."""
+    orch = register_agent(
+        session_id=session_id, auditor_id=auditor_id,
+        agent_type="ORCHESTRATOR", model_id="claude-sonnet-4-6",
+        provider="anthropic", trust_tier="T1", authority_scope="ROUTING",
+        max_synthesis_depth=3,
+    )
+    sub_a = register_agent(
+        session_id=session_id, auditor_id=auditor_id,
+        agent_type="SUB_AGENT", model_id="claude-sonnet-4-6",
+        provider="anthropic", trust_tier="T2", authority_scope="HYPOTHESES",
+        max_synthesis_depth=1, parent_agent_id=orch["agent_id"],
+    )
+    sub_b = register_agent(
+        session_id=session_id, auditor_id=auditor_id,
+        agent_type="SUB_AGENT", model_id="claude-sonnet-4-6",
+        provider="anthropic", trust_tier="T2", authority_scope="HYPOTHESES",
+        max_synthesis_depth=1, parent_agent_id=orch["agent_id"],
+    )
+    with pytest.raises(HandshakeError):
+        emit_handoff(
+            session_id=session_id, auditor_id=auditor_id,
+            source_agent_id=sub_a["agent_id"], target_agent_id=sub_b["agent_id"],
+            payload_artifact_id=orch["agent_id"],
+        )
+    events = read_session_events(session_id)
+    violations = [e for e in events if e["event_type"] == "BOUNDARY_VIOLATION"]
+    assert len(violations) == 1
+    assert violations[0]["payload"]["rejection_reason"] == "MISSING_HANDSHAKE"
+
+
+def test_hash_chain_integrity_across_mixed_event_types(
+    session_id: str, auditor_id: str
+) -> None:
+    """Replay verifies across AGENT_REGISTERED, BOUNDARY_HANDSHAKE, AGENT_HANDOFF."""
+    orch = register_agent(
+        session_id=session_id, auditor_id=auditor_id,
+        agent_type="ORCHESTRATOR", model_id="claude-sonnet-4-6",
+        provider="anthropic", trust_tier="T1", authority_scope="ROUTING",
+        max_synthesis_depth=3,
+    )
+    sub_a = register_agent(
+        session_id=session_id, auditor_id=auditor_id,
+        agent_type="SUB_AGENT", model_id="claude-sonnet-4-6",
+        provider="anthropic", trust_tier="T2", authority_scope="HYPOTHESES",
+        max_synthesis_depth=1, parent_agent_id=orch["agent_id"],
+    )
+    sub_b = register_agent(
+        session_id=session_id, auditor_id=auditor_id,
+        agent_type="SUB_AGENT", model_id="claude-sonnet-4-6",
+        provider="anthropic", trust_tier="T2", authority_scope="HYPOTHESES",
+        max_synthesis_depth=1, parent_agent_id=orch["agent_id"],
+    )
+    emit_handshake(
+        session_id=session_id, auditor_id=auditor_id,
+        source_agent_id=sub_a["agent_id"], target_agent_id=sub_b["agent_id"],
+    )
+    emit_handoff(
+        session_id=session_id, auditor_id=auditor_id,
+        source_agent_id=sub_a["agent_id"], target_agent_id=sub_b["agent_id"],
+        payload_artifact_id=orch["agent_id"],
+    )
+
+    events = read_session_events(session_id)
+    # Expect 3 AGENT_REGISTERED, 1 BOUNDARY_HANDSHAKE, 1 AGENT_HANDOFF = 5 events.
+    assert len(events) == 5
+    types = [e["event_type"] for e in events]
+    assert "BOUNDARY_HANDSHAKE" in types
+    assert "AGENT_HANDOFF" in types
+    # Each event's prev_hash chains to the previous event's event_hash.
+    for i in range(1, len(events)):
+        assert events[i]["prev_hash"] == events[i - 1]["event_hash"]
+
+
+def test_tampered_handoff_event_detected(
+    session_id: str, auditor_id: str
+) -> None:
+    """Mutate a committed AGENT_HANDOFF file; replay must raise LedgerIntegrityError."""
+    orch = register_agent(
+        session_id=session_id, auditor_id=auditor_id,
+        agent_type="ORCHESTRATOR", model_id="claude-sonnet-4-6",
+        provider="anthropic", trust_tier="T1", authority_scope="ROUTING",
+        max_synthesis_depth=2,
+    )
+    sub = register_agent(
+        session_id=session_id, auditor_id=auditor_id,
+        agent_type="SUB_AGENT", model_id="claude-sonnet-4-6",
+        provider="anthropic", trust_tier="T2", authority_scope="HYPOTHESES",
+        max_synthesis_depth=1, parent_agent_id=orch["agent_id"],
+    )
+    emit_handoff(
+        session_id=session_id, auditor_id=auditor_id,
+        source_agent_id=orch["agent_id"], target_agent_id=sub["agent_id"],
+        payload_artifact_id=sub["agent_id"],
+    )
+
+    ledger_root = (
+        Path(__file__).resolve().parent.parent.parent
+        / "ledger" / "hash_chain" / "sessions" / session_id
+    )
+    files = sorted(
+        p for p in ledger_root.iterdir()
+        if p.name.endswith(".json") and not p.name.startswith("_")
+    )
+    handoff_file = next(
+        p for p in files
+        if json.loads(p.read_text())["event_type"] == "AGENT_HANDOFF"
+    )
+    data = json.loads(handoff_file.read_text())
+    data["payload"]["agent_handoff"]["target_agent_id"] = "AGT_tampered0001"
+    handoff_file.write_text(json.dumps(data, sort_keys=True, indent=2))
+
+    with pytest.raises(LedgerIntegrityError):
+        read_session_events(session_id)
