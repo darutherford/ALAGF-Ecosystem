@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://alagf.io/schemas/v2/LedgerEvent.envelope.schema.json",
   "title": "LedgerEvent envelope (v2)",
-  "description": "Append-only ledger event envelope. Every runtime event in the /multiagent track is wrapped in this structure with SHA-256 hash chaining. Governance rationale: Invariant 4 (Reconstructability) — events are self-describing and causally linked; ledger alone suffices to reconstruct session history.",
+  "description": "Append-only ledger event envelope. Every runtime event in the /multiagent track is wrapped in this structure with SHA-256 hash chaining. Governance rationale: Invariant 4 (Reconstructability) \u2014 events are self-describing and causally linked; ledger alone suffices to reconstruct session history.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -35,9 +35,11 @@
         "AGENT_SESSION_REGISTRY",
         "AGENT_HANDOFF",
         "BOUNDARY_HANDSHAKE",
-        "BOUNDARY_VIOLATION"
+        "BOUNDARY_VIOLATION",
+        "HYPOTHESIS_REGISTERED",
+        "DEPTH_LIMIT_REACHED"
       ],
-      "description": "Sprint-1 base registry plus Sprint-2 boundary event types (AGENT_HANDOFF, BOUNDARY_HANDSHAKE, BOUNDARY_VIOLATION). Additional types added in later sprints."
+      "description": "Sprint-1 base registry plus Sprint-2 boundary event types (AGENT_HANDOFF, BOUNDARY_HANDSHAKE, BOUNDARY_VIOLATION) plus Sprint-3 synthesis event types (HYPOTHESIS_REGISTERED, DEPTH_LIMIT_REACHED). Additional types added in later sprints."
     },
     "schema_version": {
       "type": "string",
