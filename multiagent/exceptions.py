@@ -12,7 +12,9 @@ Inheritance:
     ├── AgentRegistrationError       (Sprint-1 net-new)
     ├── UnregisteredAgentError       (Sprint-1 net-new)
     ├── DepthLimitExceededError      (Sprint-1 reserved; Sprint-3 enforcement)
-    └── LedgerIntegrityError         (Sprint-1 net-new; hash-chain violations)
+    ├── LedgerIntegrityError         (Sprint-1 net-new; hash-chain violations)
+    ├── BoundaryViolationError       (Sprint-2 net-new; handoff precondition breach)
+    └── HandshakeError               (Sprint-2 net-new; channel protocol violation)
 """
 
 from __future__ import annotations
@@ -80,4 +82,41 @@ class LedgerIntegrityError(ALAGFError):
 
     Governance rationale: The ledger is append-only and causally chained
     (Invariant 4). Any integrity violation is a hard stop.
+    """
+
+
+class BoundaryViolationError(ALAGFError):
+    """Raised when an AgentHandoff attempt fails precondition validation.
+
+    Causes include unregistered source or target, inactive (SUSPENDED /
+    REVOKED) source or target, cross-session handoff attempts, handoffs
+    referencing non-discoverable payload_artifact_ids, handoffs of binding-
+    authority payloads, and self-handoffs.
+
+    The orchestrator emits a BOUNDARY_VIOLATION ledger event BEFORE raising
+    this exception, per Invariant 4 (no silent failure). The rejection_reason
+    on that event is a closed enum for machine-verifiable audit.
+
+    Governance rationale: agent boundaries are governance boundaries
+    (Sprint-2 core principle). Precondition enforcement is the mechanism
+    by which Invariants 1, 3, and 4 are preserved across boundary crossings.
+    """
+
+
+class HandshakeError(ALAGFError):
+    """Raised when a BOUNDARY_HANDSHAKE or handshake-dependent handoff
+    violates the channel protocol.
+
+    Causes include SUB_AGENT-to-SUB_AGENT (or peer VALIDATOR) handoffs
+    attempted without a prior BOUNDARY_HANDSHAKE establishing the channel,
+    handshake emission referencing unregistered or cross-session agents,
+    and handshake attempts between an agent and itself.
+
+    The orchestrator emits a BOUNDARY_VIOLATION ledger event BEFORE raising
+    this exception for precondition failures that fall under the handshake
+    protocol, per Invariant 4 (no silent failure).
+
+    Governance rationale: Invariant 3 (Evidence-First) requires peer-level
+    channels have explicit establishment evidence in the ledger. The
+    handshake protocol is the mechanism that produces that evidence.
     """
