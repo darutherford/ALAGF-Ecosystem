@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://alagf.io/schemas/v2/HYPOTHESIS_REGISTERED.payload.schema.json",
+  "title": "HYPOTHESIS_REGISTERED payload",
+  "description": "Emitted on successful Hypothesis synthesis. Carries the full Hypothesis artifact plus denormalized governance fields required for ledger-only reconstructability (Invariant 4).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "hypothesis",
+    "governing_ceiling",
+    "ceiling_attribution",
+    "bme_score_source"
+  ],
+  "properties": {
+    "hypothesis": {
+      "type": "object",
+      "description": "The full v2 Hypothesis artifact. Must validate against shared/artifact-contracts/v2/Hypothesis.schema.json."
+    },
+    "governing_ceiling": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "The max_synthesis_depth value that governed this synthesis under chain-minimum attribution. Denormalized so reconstruction does not require re-walking the agent registry."
+    },
+    "ceiling_attribution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["binding_agent_id", "binding_max_synthesis_depth"],
+      "properties": {
+        "binding_agent_id": {
+          "type": "string",
+          "pattern": "^AGT_[0-9a-f]{12}$",
+          "description": "Agent whose max_synthesis_depth was the minimum in the chain union {source_agent} \u222a upstream-chain-agents, and therefore governs. Invariant 2 transparency."
+        },
+        "binding_max_synthesis_depth": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "bme_score_source": {
+      "type": "string",
+      "enum": ["placeholder", "computed"],
+      "description": "Sprint-3 decision (e-revised): composite_upstream_bme_score is number-required on the HEAD-locked Hypothesis schema. Sprint-3 accepts caller-supplied placeholders; Sprint-4 BME attribution populates computed values. This field marks which source produced the value so reconstruction can distinguish the two without touching the artifact schema."
+    }
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://alagf.io/schemas/v2/DEPTH_LIMIT_REACHED.payload.schema.json",
+  "title": "DEPTH_LIMIT_REACHED payload",
+  "description": "Emitted BEFORE DepthLimitExceededError is raised. Marks a provenance path as requiring human intervention. Governs path-scoped session freeze derivation (Invariant 2 structural enforcement, Invariant 4 reconstructability).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "attempted_source_agent_id",
+    "attempted_upstream_hypothesis_refs",
+    "computed_depth",
+    "governing_ceiling",
+    "ceiling_attribution",
+    "frozen_provenance_ancestors",
+    "rejection_reason"
+  ],
+  "properties": {
+    "attempted_source_agent_id": {
+      "type": "string",
+      "pattern": "^AGT_[0-9a-f]{12}$"
+    },
+    "attempted_upstream_hypothesis_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^HYP_[0-9a-f]{12}$"
+      },
+      "uniqueItems": true
+    },
+    "computed_depth": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "The depth the Hypothesis WOULD HAVE HAD if registered. Strictly greater than governing_ceiling."
+    },
+    "governing_ceiling": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "ceiling_attribution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["binding_agent_id", "binding_max_synthesis_depth"],
+      "properties": {
+        "binding_agent_id": {
+          "type": "string",
+          "pattern": "^AGT_[0-9a-f]{12}$"
+        },
+        "binding_max_synthesis_depth": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "frozen_provenance_ancestors": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^HYP_[0-9a-f]{12}$"
+      },
+      "uniqueItems": true,
+      "description": "Transitive closure of upstream HYP IDs whose descendants are now frozen under path-scoped freeze. Derived purely from ledger at emission time."
+    },
+    "rejection_reason": {
+      "type": "string",
+      "enum": ["CHAIN_MINIMUM_CEILING_EXCEEDED"],
+      "description": "Closed enum. Sprint-3 introduces one reason. Additional reasons require an explicit schema change plus changelog entry."
+    }
+  }
+}
