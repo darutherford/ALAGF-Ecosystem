@@ -32,9 +32,12 @@
         "AGENT_SUSPENDED",
         "AGENT_REVOKED",
         "UNREGISTERED_AGENT_OUTPUT",
-        "AGENT_SESSION_REGISTRY"
+        "AGENT_SESSION_REGISTRY",
+        "AGENT_HANDOFF",
+        "BOUNDARY_HANDSHAKE",
+        "BOUNDARY_VIOLATION"
       ],
-      "description": "Sprint-1 event type registry. Additional types added in later sprints."
+      "description": "Sprint-1 base registry plus Sprint-2 boundary event types (AGENT_HANDOFF, BOUNDARY_HANDSHAKE, BOUNDARY_VIOLATION). Additional types added in later sprints."
     },
     "schema_version": {
       "type": "string",
