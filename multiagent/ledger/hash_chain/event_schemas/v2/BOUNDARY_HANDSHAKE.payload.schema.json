@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://alagf.io/schemas/v2/events/BOUNDARY_HANDSHAKE.payload.schema.json",
+  "title": "BOUNDARY_HANDSHAKE event payload",
+  "description": "Payload for BOUNDARY_HANDSHAKE ledger events. Establishes a formal directional communication channel between two registered agents. Required for SUB_AGENT-to-SUB_AGENT handoffs. Not required for ORCHESTRATOR-involving handoffs, where parent-child registration suffices as the channel. Governance rationale: Invariant 3 (Evidence-First) — every peer-level sub-agent channel has an explicit evidence record. Invariant 4 (Reconstructability) — channel state is derived from ledger events, not external indices. Directionality decision (Sprint-2 decision a): a handshake establishes the A-to-B channel only; the reverse direction requires its own handshake event.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "source_agent_id",
+    "target_agent_id",
+    "handshake_timestamp"
+  ],
+  "properties": {
+    "source_agent_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Agent initiating the channel. Must be a registered ACTIVE AgentIdentity in this session."
+    },
+    "target_agent_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Agent accepting the channel. Must be a registered ACTIVE AgentIdentity in this session. Cannot equal source_agent_id."
+    },
+    "handshake_timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 UTC timestamp of channel establishment."
+    },
+    "channel_purpose": {
+      "type": "string",
+      "description": "Optional free-text tag describing the intended use of the channel. Audit-visible but not machine-enforced."
+    }
+  }
+}

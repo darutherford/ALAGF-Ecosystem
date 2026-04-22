@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://alagf.io/schemas/v2/events/AGENT_HANDOFF.payload.schema.json",
+  "title": "AGENT_HANDOFF event payload",
+  "description": "Payload for AGENT_HANDOFF ledger events. Carries the full AgentHandoff artifact produced at an inter-agent output boundary crossing. Governance rationale: Invariant 4 (Reconstructability) requires every boundary crossing be captured as a first-class ledger event with the complete artifact embedded; the ledger alone must answer what crossed, from whom, to whom, and under whose auditor authority. Invariant 1 (Authority) is preserved at the artifact level: AgentHandoff.non_authoritative_flag is hard-coded true and handoffs cannot confer binding authority on their payloads.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["agent_handoff"],
+  "properties": {
+    "agent_handoff": {
+      "type": "object",
+      "description": "Full AgentHandoff artifact as defined in /shared/artifact-contracts/v2/AgentHandoff.schema.json. Validated separately by the AgentHandoff schema at emission time."
+    }
+  }
+}

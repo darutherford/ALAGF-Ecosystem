@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://alagf.io/schemas/v2/events/BOUNDARY_VIOLATION.payload.schema.json",
+  "title": "BOUNDARY_VIOLATION event payload",
+  "description": "Error event emitted when an AgentHandoff or BOUNDARY_HANDSHAKE attempt fails precondition checks. Emitted BEFORE BoundaryViolationError or HandshakeError is raised. Governance rationale: Invariant 4 (Reconstructability) — every failure path produces a ledger event; silent failures are prohibited. The rejection_reason is a closed enum so audit reconstruction is machine-verifiable. Rejection reasons are exhaustive of the Sprint-2 precondition surface: source/target registration and activity, session isolation, handshake prerequisite, payload authority, payload discoverability, self-handoff, and auditor pattern at the API boundary.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "attempted_source_agent_id",
+    "attempted_target_agent_id",
+    "attempted_artifact_type",
+    "rejection_reason"
+  ],
+  "properties": {
+    "attempted_source_agent_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "source_agent_id from the rejected attempt. Captured verbatim for reconstruction even if the agent is unregistered."
+    },
+    "attempted_target_agent_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "target_agent_id from the rejected attempt. Captured verbatim for reconstruction even if the agent is unregistered."
+    },
+    "attempted_artifact_type": {
+      "type": "string",
+      "enum": ["AgentHandoff", "BoundaryHandshake"],
+      "description": "Type of boundary event whose emission was rejected."
+    },
+    "attempted_payload_artifact_id": {
+      "type": ["string", "null"],
+      "description": "For AgentHandoff attempts: the payload_artifact_id under attempt. Null for BoundaryHandshake attempts (no payload) or when the attempt lacked the field entirely."
+    },
+    "rejection_reason": {
+      "type": "string",
+      "enum": [
+        "SOURCE_UNREGISTERED",
+        "TARGET_UNREGISTERED",
+        "SOURCE_INACTIVE",
+        "TARGET_INACTIVE",
+        "CROSS_SESSION",
+        "MISSING_HANDSHAKE",
+        "BINDING_PAYLOAD",
+        "UNKNOWN_PAYLOAD",
+        "SELF_HANDOFF",
+        "INVALID_AUDITOR",
+        "DISALLOWED_ORIGINATOR_VALIDATOR",
+        "DISALLOWED_ORIGINATOR_HUMAN_PROXY"
+      ],
+      "description": "Closed enum of all Sprint-2 boundary rejection reasons. SOURCE_UNREGISTERED/TARGET_UNREGISTERED: agent has no registration record. SOURCE_INACTIVE/TARGET_INACTIVE: agent exists but status is SUSPENDED or REVOKED. CROSS_SESSION: source or target registered in a different session. MISSING_HANDSHAKE: peer-level handoff (SUB_AGENT or VALIDATOR endpoints with no ORCHESTRATOR/HUMAN_PROXY involvement) without a prior BOUNDARY_HANDSHAKE. BINDING_PAYLOAD: payload artifact carries authority_level='binding'. UNKNOWN_PAYLOAD: payload_artifact_id is not discoverable in the agent registry or prior ledger events. SELF_HANDOFF: source_agent_id equals target_agent_id. INVALID_AUDITOR: X-Auditor-Id header failed the AUDITOR_[A-Z0-9_]+ pattern at the API boundary. DISALLOWED_ORIGINATOR_VALIDATOR: VALIDATOR-typed source attempted to originate a handoff to a SUB_AGENT or VALIDATOR target (per Sprint-2 decision e, VALIDATORs may only originate to ORCHESTRATOR or HUMAN_PROXY). DISALLOWED_ORIGINATOR_HUMAN_PROXY: HUMAN_PROXY-typed source attempted to originate a handoff to anything other than ORCHESTRATOR (per Sprint-2 decision f, HUMAN_PROXY may only originate to ORCHESTRATOR to prevent Decision-gate bypass via handoff)."
+    },
+    "detail": {
+      "type": "string",
+      "description": "Optional free-text detail preserving the original exception message for audit readability. Not a substitute for rejection_reason."
+    }
+  }
+}
