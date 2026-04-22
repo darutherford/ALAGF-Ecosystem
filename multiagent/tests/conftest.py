@@ -25,6 +25,11 @@ def _clean_ledger() -> None:
         if target.exists():
             shutil.rmtree(target)
         target.mkdir(parents=True, exist_ok=True)
+        # Restore .gitkeep so repo layout stays stable across test runs.
+        # Governance rationale: tracked sentinel files let git preserve
+        # empty ledger directories without affecting Invariant 4
+        # (ledger state is derived from events, not directory existence).
+        (target / ".gitkeep").touch()
     yield
 
 
