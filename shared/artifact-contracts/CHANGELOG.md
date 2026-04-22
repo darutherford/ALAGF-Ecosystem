@@ -7,6 +7,83 @@ or a named BME metric.
 
 ---
 
+## [v2.0.0-sprint3] — 2026-04-22
+
+### ECOSYSTEM-SPRINT-3 — Hypothesis Runtime and Depth-Ceiling Enforcement
+
+**Track:** `/multiagent` (Multi-Agent Governance Extension)
+**Auditor:** AUDITOR_DALE_001
+**Primary invariant:** Invariant 2 (Non-Bypass) — structural enforcement
+
+### Schema changes
+
+**No modifications to v2 canonical artifact schemas in Sprint-3.**
+
+`shared/artifact-contracts/v2/Hypothesis.schema.json` was finalized in
+Sprint-0 with all fields required by Sprint-3 already in place:
+`synthesis_depth`, `upstream_hypothesis_refs`, `composite_upstream_bme_score`,
+`observation_refs` (minItems: 1), `non_authoritative_flag` (const: true).
+Sprint-3 provides the runtime that enforces these schema constraints at
+emission time rather than altering the contract itself.
+
+**Rationale for no-amendment:** The Sprint-0 contract is complete for
+multi-agent Hypothesis emission. The only field Sprint-3 initially wanted
+to modify — `composite_upstream_bme_score` nullability — was resolved via
+a ledger-payload marker (`bme_score_source`: `placeholder` or `computed`)
+on the `HYPOTHESIS_REGISTERED` event payload rather than a schema change.
+This preserves the locked contract while allowing Sprint-3 emission with
+caller-supplied placeholder scores that Sprint-4 will supersede.
+
+### Sprint-3 ratified design decisions (reference)
+
+Full rationale lives at
+`multiagent/docs/schema_versions/sprint-3-changelog.md`. Summary:
+
+| ID | Decision | Governance |
+|---|---|---|
+| (a) | Chain-minimum ceiling attribution | Closes relay-laundering vector; Invariant 2 architectural |
+| (b) | Path-scoped freeze | Proportional rejection; ledger-derived; Invariant 2 + 4 |
+| (c) | Observations = depth 0 floor | Invariant 3 grounding |
+| (d) | New `ScopeViolationError` class | Audit taxonomy differentiation |
+| (e-revised) | `composite_upstream_bme_score` placeholder with payload marker | Sprint-0 schema locked; marker preserves traceability |
+| (f) | Handoff ≠ synthesis hop | Orchestration vs. inference separation |
+| (g-i) | `observation_refs` minItems: 1 on every Hypothesis regardless of depth | Every inferential artifact traces to evidence |
+
+### New ledger event payload schemas (not canonical artifacts)
+
+Two net-new event payload schemas under
+`multiagent/ledger/hash_chain/event_schemas/v2/`:
+
+- `HYPOTHESIS_REGISTERED.payload.schema.json` — wraps the full Hypothesis
+  artifact plus `governing_ceiling`, `ceiling_attribution`, and
+  `bme_score_source`.
+- `DEPTH_LIMIT_REACHED.payload.schema.json` — carries
+  `attempted_source_agent_id`, `attempted_upstream_hypothesis_refs`,
+  `computed_depth`, `governing_ceiling`, `ceiling_attribution`,
+  `frozen_provenance_ancestors`, and `rejection_reason`
+  (closed enum: `CHAIN_MINIMUM_CEILING_EXCEEDED`).
+
+These are event schemas, not canonical lifecycle artifacts. They live in
+the `/multiagent` track and do not affect `/shared/artifact-contracts/v2/`.
+
+### Envelope schema extension
+
+`multiagent/ledger/hash_chain/event_schemas/v2/LedgerEvent.envelope.schema.json`
+is modified in exactly one place: the `event_type` enum is extended with
+two members: `HYPOTHESIS_REGISTERED` and `DEPTH_LIMIT_REACHED`. All other
+envelope fields are preserved verbatim (Precondition 7).
+
+### Open items for Sprint-4
+
+- `ScopeViolationError` ledger event treatment (new `SCOPE_VIOLATION`
+  event type vs. extending `UNREGISTERED_AGENT_OUTPUT`).
+- `FrozenPathError` ledger event treatment (new `FROZEN_PATH_REJECTED`
+  event type vs. reliance on prior `DEPTH_LIMIT_REACHED`).
+- BME attribution wire-up: populate `composite_upstream_bme_score` with
+  computed floats; set `bme_score_source: "computed"` on event payload.
+
+---
+
 ## [v2.0.0-sprint0] — 2026-04-21
 
 ### ECOSYSTEM-SPRINT-0 — Scaffolding and Schema Initialization
