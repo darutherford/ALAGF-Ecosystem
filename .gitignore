@@ -86,3 +86,9 @@ __pycache__/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+
+# Runtime artifacts from frozen demo track (Sprint-0/1 legacy)
+demo/ledger/
+
+# Local patch-import staging (not canonical; re-generatable from git history)
+patches/
