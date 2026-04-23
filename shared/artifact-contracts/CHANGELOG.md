@@ -7,80 +7,116 @@ or a named BME metric.
 
 ---
 
-## [v2.0.0-sprint3] — 2026-04-22
-
-### ECOSYSTEM-SPRINT-3 — Hypothesis Runtime and Depth-Ceiling Enforcement
+## [v2.0.1-sprint0-remediation] — Sprint-0 Post-Corpus-Review Remediation
 
 **Track:** `/multiagent` (Multi-Agent Governance Extension)
 **Auditor:** AUDITOR_DALE_001
-**Primary invariant:** Invariant 2 (Non-Bypass) — structural enforcement
+**Commit reference:** Pending; remediation commit message:
+`ECOSYSTEM-SPRINT-0-REMEDIATION: Nomenclature correction and BAR disambiguation`
 
-### Schema changes
+### Background
 
-**No modifications to v2 canonical artifact schemas in Sprint-3.**
+Sprint-0 deliverables were produced before the ecosystem's full research corpus
+was reviewed. Post-corpus review revealed three substantive nomenclature
+errors in the committed Sprint-0 artifacts that require correction before
+Sprint-1 implementation begins. This changelog entry documents the remediation.
 
-`shared/artifact-contracts/v2/Hypothesis.schema.json` was finalized in
-Sprint-0 with all fields required by Sprint-3 already in place:
-`synthesis_depth`, `upstream_hypothesis_refs`, `composite_upstream_bme_score`,
-`observation_refs` (minItems: 1), `non_authoritative_flag` (const: true).
-Sprint-3 provides the runtime that enforces these schema constraints at
-emission time rather than altering the contract itself.
+### Correction 1 — ALAGF Canonical Expansion
 
-**Rationale for no-amendment:** The Sprint-0 contract is complete for
-multi-agent Hypothesis emission. The only field Sprint-3 initially wanted
-to modify — `composite_upstream_bme_score` nullability — was resolved via
-a ledger-payload marker (`bme_score_source`: `placeholder` or `computed`)
-on the `HYPOTHESIS_REGISTERED` event payload rather than a schema change.
-This preserves the locked contract while allowing Sprint-3 emission with
-caller-supplied placeholder scores that Sprint-4 will supersede.
+**Incorrect (Sprint-0):** "Applied Lifecycle AI Governance Framework"
 
-### Sprint-3 ratified design decisions (reference)
+**Canonical:** "Adaptive Lifecycle Agentic Governance Framework"
 
-Full rationale lives at
-`multiagent/docs/schema_versions/sprint-3-changelog.md`. Summary:
+**Source:** Rutherford (2026), *Behavioral Assurance*, Preface and Acronym
+glossary; BAAGF specification document; canonical treatise.
 
-| ID | Decision | Governance |
-|---|---|---|
-| (a) | Chain-minimum ceiling attribution | Closes relay-laundering vector; Invariant 2 architectural |
-| (b) | Path-scoped freeze | Proportional rejection; ledger-derived; Invariant 2 + 4 |
-| (c) | Observations = depth 0 floor | Invariant 3 grounding |
-| (d) | New `ScopeViolationError` class | Audit taxonomy differentiation |
-| (e-revised) | `composite_upstream_bme_score` placeholder with payload marker | Sprint-0 schema locked; marker preserves traceability |
-| (f) | Handoff ≠ synthesis hop | Orchestration vs. inference separation |
-| (g-i) | `observation_refs` minItems: 1 on every Hypothesis regardless of depth | Every inferential artifact traces to evidence |
+**Files updated:**
+- `README.md` (ecosystem root)
+- `shared/artifact-contracts/CHANGELOG.md` (this file)
+- `shared/artifact-contracts/v2/*.schema.json` (`$comment` fields referencing
+  ALAGF expansion)
+- `shared/standards-refs/*.md` (ISO_42001, NIST_RMF, EU_AI_Act clause maps)
 
-### New ledger event payload schemas (not canonical artifacts)
+No schema structural changes. Only `$comment` textual updates where ALAGF was
+expanded inline.
 
-Two net-new event payload schemas under
-`multiagent/ledger/hash_chain/event_schemas/v2/`:
+### Correction 2 — ALAGF Tripartite Architecture
 
-- `HYPOTHESIS_REGISTERED.payload.schema.json` — wraps the full Hypothesis
-  artifact plus `governing_ceiling`, `ceiling_attribution`, and
-  `bme_score_source`.
-- `DEPTH_LIMIT_REACHED.payload.schema.json` — carries
-  `attempted_source_agent_id`, `attempted_upstream_hypothesis_refs`,
-  `computed_depth`, `governing_ceiling`, `ceiling_attribution`,
-  `frozen_provenance_ancestors`, and `rejection_reason`
-  (closed enum: `CHAIN_MINIMUM_CEILING_EXCEEDED`).
+**Incorrect framing (Sprint-0):** ALAGF treated as a monolithic framework.
 
-These are event schemas, not canonical lifecycle artifacts. They live in
-the `/multiagent` track and do not affect `/shared/artifact-contracts/v2/`.
+**Canonical framing:** ALAGF is a governance tripartite architecture
+comprising three functionally distinct, informationally coupled subsystems:
 
-### Envelope schema extension
+- **BAAGF** (Behavioral Assurance and Agentic Governance Framework) —
+  architectural conscience; owns BME Metric Suite definitions and calibration
+  authority; issues binding governance directives.
+- **SymPrompt+** — operational voice; translates governance directives into
+  prompt-level behavioral modulations; maintains intervention version
+  registry.
+- **MIDCOT** (Multi-Dataset IQ Drift and Cost Optimization Training) —
+  performance memory; ingests behavioral metric data; maintains SPC control
+  charts; detects drift signals.
 
-`multiagent/ledger/hash_chain/event_schemas/v2/LedgerEvent.envelope.schema.json`
-is modified in exactly one place: the `event_type` enum is extended with
-two members: `HYPOTHESIS_REGISTERED` and `DEPTH_LIMIT_REACHED`. All other
-envelope fields are preserved verbatim (Precondition 7).
+The BME Metric Suite operates as the shared diagnostic layer across all three
+subsystems, owned by BAAGF.
 
-### Open items for Sprint-4
+**Files updated:**
+- `README.md` (new "ALAGF Governance Tripartite" section)
+- `multiagent/README.md` (contextualizes the multi-agent extension within
+  the tripartite)
 
-- `ScopeViolationError` ledger event treatment (new `SCOPE_VIOLATION`
-  event type vs. extending `UNREGISTERED_AGENT_OUTPUT`).
-- `FrozenPathError` ledger event treatment (new `FROZEN_PATH_REJECTED`
-  event type vs. reliance on prior `DEPTH_LIMIT_REACHED`).
-- BME attribution wire-up: populate `composite_upstream_bme_score` with
-  computed floats; set `bme_score_source: "computed"` on event payload.
+No schema changes. The multi-agent extension operates within this tripartite
+architecture; the v2 schemas remain valid as designed.
+
+### Correction 3 — BAR Disambiguation
+
+**Problem:** The ALAGF research corpus contains two distinct authoritative
+metrics sharing the BAR acronym:
+
+1. **BAR-BAR** = Behavioral Assurance Rating (BME Suite control limit
+   analogue; replaces `x̄ ± 3σ`). Source: Rutherford (2026), *Behavioral
+   Assurance*, Appendix C.
+2. **BAR-NOBE** = Bias Amplification Rate (per-turn bias trajectory metric;
+   `|BMS(turn_N)| / |BMS(turn_1)|`). Source: Rutherford and Wu (2026), NOBE/BAR
+   Whitepaper, PT-2026-007.
+
+**Original Sprint-0 project instructions:** Listed BAR as "Bias Amplification
+Rate" in the BME Metric Suite description. This conflated the two metrics.
+
+**Canonical disambiguation established:** The multi-agent extension metric
+**BAR-A** is an **Agentic Behavioral Assurance Rating** (extension of BAR-BAR
+to agent-scoped control limits). It is NOT an agent-scoped Bias Amplification
+Rate.
+
+**Governance rationale:** The multi-agent extension's theory centers on agent
+boundaries as SPC process boundaries. BAR-BAR, as the SPC control-limit
+metric, is the natural construct to extend. Conflating it with BAR-NOBE would
+produce silent implementation errors in Sprint-4 (BME Attribution Per Agent).
+
+**Files added:**
+- `docs/nomenclature/BAR_disambiguation.md` (canonical disambiguation
+  document; required reading before Sprint-4)
+
+**Files updated:**
+- `README.md` (BME Metric Suite section with explicit BAR disambiguation)
+- `shared/artifact-contracts/v2/Hypothesis.schema.json` (`$comment` on
+  `composite_upstream_bme_score` clarifies that upstream aggregation is of
+  CBMES values, with BAR-BAR as a component metric)
+
+### Lock Status
+
+- v1 canonical lifecycle schemas: **remain LOCKED**. No structural changes.
+  Only `$comment` field textual updates. Treated as metadata remediation,
+  not schema evolution.
+- v1 orchestration-support schemas: **remain LOCKED**. No changes.
+- v2 canonical schemas: **remain ACTIVE**. No structural changes. Only
+  `$comment` field textual updates where ALAGF expansion or BME metric
+  terminology appeared.
+
+**Reviewer note:** This remediation does NOT constitute schema evolution. It
+is a metadata-layer correction. Any consumer that validates artifacts
+against the v1 or v2 schemas will produce identical validation results
+before and after this remediation.
 
 ---
 
@@ -90,7 +126,7 @@ envelope fields are preserved verbatim (Precondition 7).
 
 **Track:** `/multiagent` (Multi-Agent Governance Extension)
 **Auditor:** AUDITOR_DALE_001
-**Commit reference:** Pending initial push to `DARutherford/ALAGF-Ecosystem`
+**Commit reference:** `2bdfa42` on origin/main
 
 ### v1 Formalization (Path B)
 
@@ -104,8 +140,8 @@ not exist.
 **Provenance:** All v1 schemas extracted from `alagf-demo/artifacts/__init__.py`
 as of Sprint-0 session. Runtime invariants hard-coded in the Python source
 (frozen dataclasses, `init=False` flags, `__post_init__` validation) are
-preserved in JSON Schema through `const`, `enum`, `pattern`, and `minLength`
-constraints.
+preserved in JSON Schema through `const`, `enum`, `pattern`, `minItems`, and
+`minLength` constraints.
 
 **v1 canonical lifecycle artifacts** (`/shared/artifact-contracts/v1/`):
 
@@ -122,9 +158,8 @@ constraints.
 
 Per Path C, three artifacts present in `alagf-demo/artifacts/__init__.py` are
 classified as orchestration-support rather than canonical lifecycle. They are
-versioned in a parallel namespace to preserve the canonical-six framing of the
-project instructions while closing the reconstructability gap for ledger
-reconstruction.
+versioned in a parallel namespace to preserve the canonical-six framing while
+closing the reconstructability gap.
 
 | Schema | Authority Level | Rationale |
 |---|---|---|
@@ -132,10 +167,8 @@ reconstruction.
 | `StressObservation.schema.json` | observational | M2 stress engine output; feeds Observation pipeline |
 | `MetricObservation.schema.json` | observational | M3 telemetry output; constrained to CANONICAL_METRICS and VALID_SPC_FLAGS |
 
-**v1 lock status:** All v1 schemas above are **LOCKED** as of this changelog
-entry. Modification is prohibited by Instruction Discipline Rule 3. Any
-corrective change to v1 requires a formal amendment process and a new
-changelog entry documenting the remediation.
+**v1 lock status:** All v1 schemas above are **LOCKED** as of Sprint-0.
+Modification prohibited by Instruction Discipline Rule 3.
 
 ### v2 Initialization
 
@@ -153,7 +186,7 @@ changelog entry documenting the remediation.
 ### Governance Rationale for v2 Net-New Fields
 
 Every net-new field is traceable to one of the four ALAGF invariants or a
-named BME metric per Behavioral Rule 7.
+named BME metric.
 
 | Field | Invariant / Metric | Enforcement Mechanism |
 |---|---|---|
@@ -165,30 +198,11 @@ named BME metric per Behavioral Rule 7.
 | `Observation.input_provenance_chain` | Invariants 3, 4 | Complete chain required before Decision presentation |
 | `Hypothesis.synthesis_depth` | Invariant 2 (Non-Bypass) | Counter enforced against `max_synthesis_depth` ceiling |
 | `Hypothesis.upstream_hypothesis_refs` | Invariant 4 (Reconstructability) | Ledger-alone chain traversal |
-| `Hypothesis.composite_upstream_bme_score` | BME Metric Suite (BAR-A, ECPI-A, IQD-A) | Weighted aggregate per `composite_bme_ci.py` |
+| `Hypothesis.composite_upstream_bme_score` | CBMES (BME Metric Suite composite) | Weighted aggregate per BAAGF composite formula. BAR-A (Behavioral Assurance Rating agentic extension) is one of the component metrics. See `/docs/nomenclature/BAR_disambiguation.md`. |
 | `Decision.agent_context_reviewed` | Invariant 3 (Evidence-First) | `const: true` affirmation required for validation |
 | `Decision.synthesis_depth_at_decision` | Invariant 4 (Reconstructability) | Captures depth state at moment of binding |
 | `Action.source_agent_id` | Invariant 2 (Non-Bypass) | Paired with `delegation_blocked` check |
 | `Action.delegation_blocked` | Invariant 2 (Non-Bypass) | `const: true`; orchestrator rejects if `source_agent_id` non-null AND `decision_ref` missing |
-
-### Sprint-0 Scope Adjustment (Path B)
-
-Original DoD stated: "populated with locked v1 schemas (copied verbatim from
-alagf-demo — no modifications)."
-
-Adjusted DoD: "v1 JSON Schemas formalized from canonical Python source at
-`alagf-demo/artifacts/__init__.py` and frozen as the v1 portable contract."
-
-Original DoD stated: "/shared/artifact-contracts/v2/ scaffolded with stub
-files for all seven v2 contracts."
-
-Adjusted DoD: "/shared/artifact-contracts/v2/ contains full contracts for
-AgentIdentity and AgentHandoff, and full v2 extension schemas for
-Observation, Hypothesis, Decision, and Action. All schemas validate against
-JSON Schema Draft 2020-12."
-
-Net scope addition: `/shared/orchestration-contracts/v1/` parallel namespace
-with three orchestration-support schemas (Path C selection).
 
 ---
 

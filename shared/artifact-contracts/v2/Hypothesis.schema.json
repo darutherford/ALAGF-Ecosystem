@@ -87,7 +87,7 @@
       "type": "number",
       "minimum": 0.0,
       "maximum": 1.0,
-      "description": "Net-new in v2. Weighted aggregate of upstream agents' BME-CI scores at the moment of synthesis. Formula and weights defined in /shared/bme-metric-suite/composite_bme_ci.py. Governance rationale: supports BME-A extensions (BAR-A, ECPI-A, IQD-A) by carrying upstream contamination forward through synthesis chains."
+      "description": "Net-new in v2. Weighted aggregate of upstream agents' CBMES (Composite Behavioral Measurement Evaluation Score) values at the moment of synthesis. Formula and weights defined in /shared/bme-metric-suite/composite_bme_ci.py per BAAGF specification. Governance rationale: supports agentic BME extensions BAR-A (Agentic Behavioral Assurance Rating - SPC control limits per agent; NOT Bias Amplification Rate - see /docs/nomenclature/BAR_disambiguation.md), ECPI-A (Agentic Entropy-Calibrated Performance Index), and IQD-A (Recursive Information Quality Deviation) by carrying upstream governance state forward through synthesis chains."
     },
     "created_at": {
       "type": "string",
