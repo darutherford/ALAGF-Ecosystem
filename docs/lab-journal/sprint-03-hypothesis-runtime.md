@@ -1,4 +1,4 @@
-﻿# Sprint-3: Hypothesis Runtime and Depth Ceiling Enforcement
+# Sprint-3: Hypothesis Runtime and Depth Ceiling Enforcement
 
 **Sprint identifier:** ECOSYSTEM-SPRINT-3
 **Close date:** 2026-04-22
@@ -331,5 +331,5 @@ National Institute of Standards and Technology. (2023). *Artificial
 Intelligence Risk Management Framework (AI RMF 1.0)* (NIST AI 100-1).
 U.S. Department of Commerce. https://doi.org/10.6028/NIST.AI.100-1
 
-Rutherford, D. (2025). *The Applied Lifecycle AI Governance Framework*
+Rutherford, D. (2025). *The Adaptive Lifecycle Agentic Governance Framework*
 [Unpublished manuscript]. University of Arkansas at Little Rock.

@@ -41,8 +41,8 @@ AI risks are assessed and tracked.
 | MEASURE 1.1 (test suite) | `/demo/tests/`, `/multiagent/tests/invariant_tests/` | Sprint 0-7 |
 | MEASURE 2.3 (performance) | MetricObservation (BME metrics) | Orchestration v1 |
 | MEASURE 2.7 (security/resilience) | StressObservation (adversarial, robustness stress types) | Orchestration v1 |
-| MEASURE 2.11 (fairness/bias) | BAR, BAR-A (Agentic Bias Amplification Rate) | BME Metric Suite |
-| MEASURE 3.1 (ongoing monitoring) | SPC/CUSUM on BME metrics | `/shared/bme-metric-suite/` |
+| MEASURE 2.11 (fairness/bias) | BAR-NOBE (Bias Amplification Rate per NOBE methodology, PT-2026-007); per-turn bias trajectory monitoring | NOBE methodology |
+| MEASURE 3.1 (ongoing monitoring) | SPC/CUSUM on BME metrics (BAR = Behavioral Assurance Rating, ECPI, ECI, SPAR) | `/shared/bme-metric-suite/` |
 
 ### MANAGE
 
@@ -65,8 +65,12 @@ The ALAGF v2 extension contributes:
 - **GOVERN gap:** Cross-session agent reputation tracking (dissertation-level
   contribution candidate, future sprint scope)
 - **MAP gap:** Agent-boundary risk identification via `input_provenance_chain`
-- **MEASURE gap:** Agentic BME metrics (BAR-A, ECPI-A, IQD-A) capturing
-  cross-agent contamination not visible in single-agent metrics
+- **MEASURE gap:** Agentic BME metrics (BAR-A = Agentic Behavioral Assurance
+  Rating, ECPI-A = Agentic Entropy-Calibrated Performance Index, IQD-A =
+  Recursive Information Quality Deviation) capturing cross-agent contamination
+  not visible in single-agent metrics. Note: BAR-A is the SPC control-limit
+  extension, distinct from BAR-NOBE (Bias Amplification Rate). See
+  `/docs/nomenclature/BAR_disambiguation.md`.
 - **MANAGE gap:** Structural depth enforcement (`max_synthesis_depth`) as a
   non-bypassable risk control mechanism
 

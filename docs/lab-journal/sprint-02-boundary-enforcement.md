@@ -1,4 +1,4 @@
-﻿# Sprint-2: Agent Boundary Enforcement and Handoff Lifecycle
+# Sprint-2: Agent Boundary Enforcement and Handoff Lifecycle
 
 **Sprint identifier:** ECOSYSTEM-SPRINT-2
 **Close date:** 2026-04-22
@@ -183,5 +183,5 @@ implementation of that principle.
 International Organization for Standardization. (2023). *Information
 technology. Artificial intelligence. Management system* (ISO/IEC 42001:2023).
 
-Rutherford, D. (2025). *The Applied Lifecycle AI Governance Framework*
+Rutherford, D. (2025). *The Adaptive Lifecycle Agentic Governance Framework*
 [Unpublished manuscript]. University of Arkansas at Little Rock.

@@ -1,4 +1,4 @@
-﻿═══════════════════════════════════════════════════════════════════════
+═══════════════════════════════════════════════════════════════════════
 ECOSYSTEM-SPRINT-4 --- INITIALIZATION PROMPT
 BME Attribution, Exception Consolidation, Registry Pass-Through
 ALAGF-Ecosystem | AUDITOR_DALE_001
@@ -30,6 +30,12 @@ this sprint.
 
 Sprint-0: monorepo scaffolding, v1 schemas extracted and locked, v2
 schemas seeded. Close: 2bdfa42, 2026-04-21 05:58 CDT.
+
+Sprint-0 remediation (post-corpus-review): ALAGF canonical expansion
+corrected to "Adaptive Lifecycle Agentic Governance Framework"; ALAGF
+tripartite (BAAGF / SymPrompt+ / MIDCOT) documented; BAR disambiguation
+established at docs/nomenclature/BAR_disambiguation.md. Close: c1c04c8,
+2026-04-23.
 
 Sprint-1: exception taxonomy, LedgerEvent envelope and payload schemas,
 ContractValidator, AgentIdentity factory with Invariant 1 runtime
@@ -96,7 +102,7 @@ layer.
 4. FRAMEWORK AND DOMAIN CONTEXT
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-BME METRIC SUITE --- Sprint-0 REMEDIATION GAP
+BME METRIC SUITE --- SPRINT-0 REMEDIATION GAP
 
 The project instructions declare `/shared/bme-metric-suite/` as the
 canonical location for BME metric modules. Sprint-0's reconciliation note
@@ -117,18 +123,47 @@ for the formula and weights. Sprint-4 Block A creates that file and the
 supporting BME module structure. This is inherited Sprint-0 debt, named
 explicitly here per LESSONS.md L5.
 
+BME METRIC NOMENCLATURE --- TRACK-SPECIFIC vs CANONICAL
+
+The ALAGF research corpus (Rutherford, 2026, Behavioral Assurance)
+defines a five-metric BME Suite with specific canonical expansions and
+a composite named CBMES (Composite Behavioral Measurement Evaluation
+Score). The multi-agent track uses a simplified composite named BME-CI
+with a three-component decomposition (BM, BE, ME) distinct from
+canonical CBMES. This divergence is intentional: BME-CI is a
+computationally tractable track-specific composite appropriate for
+Sprint-4's multi-agent attribution scope. Sprint-5 or later may
+reconcile to canonical CBMES if dissertation defense requires it.
+
+See docs/nomenclature/BAR_disambiguation.md for the canonical BAR
+vs BAR-NOBE separation, which is in force across all sprints.
+
 BME METRICS IN SCOPE FOR SPRINT-4
 
 Single-agent baseline (simplified implementations, full treatment deferred
-to Sprint-5):
+to Sprint-5). Canonical expansions per the 2026 treatise:
 
-    BAR   Bias Amplification Rate
-    ECPI  Echo Chamber Propagation Index
-    IQD   Information Quality Decay
-    PTDI  Pre-Training Diversity Index
+    BAR   Behavioral Assurance Rating
+          (SPC control limit analogue; not Bias Amplification Rate,
+          which is the separate NOBE methodology metric per
+          docs/nomenclature/BAR_disambiguation.md)
+    ECPI  Entropy-Calibrated Performance Index
+          (process capability analogue; canonical treatise definition
+          uses empirical quantiles; Sprint-4 implements simplified form)
+    IQD   Information Quality Deviation
+          (corpus-level data quality metric)
+    PTDI  Prompt Traceability and Disclosure Index
+          (prompt governance traceability)
     AHRS  Architectural Hallucination Risk Score
+          (pre-deployment architectural risk composite; canonical form
+          uses seven-factor weighted composite per AHRS paper)
 
-Composite index (full implementation required for Sprint-4):
+Sprint-4 implements SIMPLIFIED forms of these metrics suitable for
+multi-agent attribution. Full canonical formulations are Sprint-5
+deepening targets explicitly listed in the BME suite README.
+
+Composite index (full implementation required for Sprint-4; TRACK-SPECIFIC
+simplification):
 
     BME-CI = (BM x 0.40) + ((1 - BE) x 0.35) + ((1 - ME) x 0.25)
 
@@ -137,15 +172,22 @@ Composite index (full implementation required for Sprint-4):
       BE is derived from ECPI and PTDI
       ME is derived from IQD
 
+    NOTE: BME-CI is the multi-agent track's simplified composite. The
+    canonical CBMES formula from BAAGF Appendix C uses a different
+    five-metric weighted sum with distinct component weights. The two
+    are intentionally separate. Sprint-5 may reconcile if required.
+
     Sprint-4 delivers BME-CI computation for single-agent input; the
     per-metric extraction of BM, BE, ME from the five inputs uses
     simplified formulas with explicit Sprint-5 deepening targets.
 
 Multi-agent extensions (full Sprint-4 implementation required):
 
-    BAR-A   Agentic Bias Amplification Rate
-    ECPI-A  Agentic Echo Chamber Propagation Index
-    IQD-A   Recursive Information Quality Decay
+    BAR-A   Agentic Behavioral Assurance Rating
+            (agent-scoped SPC control limits; extension of BAR, NOT
+            an agent-scoped Bias Amplification Rate)
+    ECPI-A  Agentic Entropy-Calibrated Performance Index
+    IQD-A   Recursive Information Quality Deviation
 
     These are the Sprint-4 novel contribution surface. Their formulas
     operate over the upstream agent chain (transitive agents resolved
@@ -159,14 +201,18 @@ Composite upstream score (Sprint-4 wire-up target):
     the BAR-A, ECPI-A, IQD-A extensions combined with each upstream
     agent's BME-CI.
 
-GOVERNANCE TIER THRESHOLDS (unchanged, already operative):
+GOVERNANCE TIER THRESHOLDS (unchanged, already operative in Sprint-3
+depth-ceiling enforcement; TRACK-SPECIFIC thresholds, not canonical
+T0-T5 CBMES tiers):
 
     T1  BME-CI < 0.20   Monitor
     T2  BME-CI 0.20 to 0.29   Review
     T3  BME-CI 0.30 to 0.38   Escalate
     T4  BME-CI > 0.38   Freeze or architectural intervention
 
-Sprint-4 does not add new tier enforcement. Sprint-5 or later may.
+Sprint-4 does not add new tier enforcement. Sprint-5 or later may
+reconcile to canonical CBMES T0-T5 tiers if dissertation defense
+requires alignment.
 
 SPRINT-4 NOVEL CONTRIBUTION SURFACE
 
@@ -189,7 +235,8 @@ Both are dissertation-level citations. See Sprint-4 Lab Journal entry
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 HEAD: 348427a (Lab Journal establishment close; Sprint-3 runtime close
-was 1237009, nine commits prior).
+was 1237009, nine commits prior). Post Sprint-0 remediation, HEAD is
+c1c04c8 with the corrected Hypothesis schema description cited below.
 
 Test suite state: 110 passed, 0 skipped on multiagent/tests.
 
@@ -226,20 +273,34 @@ File: multiagent/exceptions.py
 
 File: shared/artifact-contracts/v2/Hypothesis.schema.json
 
-    The composite_upstream_bme_score field specification at HEAD:
+    The composite_upstream_bme_score field specification at HEAD (post
+    Sprint-0 remediation commit c1c04c8):
 
         "composite_upstream_bme_score": {
           "type": "number",
           "minimum": 0.0,
           "maximum": 1.0,
           "description": "Net-new in v2. Weighted aggregate of upstream
-          agents' BME-CI scores at the moment of synthesis. Formula and
-          weights defined in /shared/bme-metric-suite/composite_bme_ci.py."
+          agents' CBMES (Composite Behavioral Measurement Evaluation
+          Score) values at the moment of synthesis. Formula and weights
+          defined in /shared/bme-metric-suite/composite_bme_ci.py per
+          BAAGF specification. Governance rationale: supports agentic
+          BME extensions BAR-A (Agentic Behavioral Assurance Rating -
+          SPC control limits per agent; NOT Bias Amplification Rate -
+          see /docs/nomenclature/BAR_disambiguation.md), ECPI-A
+          (Agentic Entropy-Calibrated Performance Index), and IQD-A
+          (Recursive Information Quality Deviation) by carrying upstream
+          governance state forward through synthesis chains."
         }
 
     Sprint-4 does NOT modify this schema. The field remains required,
     non-nullable, in [0.0, 1.0]. Sprint-4 populates it with computed
     values instead of caller-supplied placeholders.
+
+    NOTE: The schema description references CBMES (canonical term). The
+    Sprint-4 track-specific composite name is BME-CI. BME-CI is treated
+    as the operational track-specific analogue of canonical CBMES. See
+    Section 4 nomenclature notes.
 
 File: multiagent/orchestrator/synthesis/hypothesis.py
 
@@ -297,9 +358,13 @@ Sprint-4 adds under /shared/bme-metric-suite/:
 
     shared/bme-metric-suite/
     |-- __init__.py
-    |-- README.md                          (module purpose, formula index)
+    |-- README.md                          (module purpose, canonical-vs-
+    |                                       track-specific nomenclature
+    |                                       note, formula index,
+    |                                       Sprint-5 deepening list)
     |-- metrics.py                         (BAR, ECPI, IQD, PTDI, AHRS, simplified)
-    |-- composite_bme_ci.py                (BME-CI composite, full)
+    |-- composite_bme_ci.py                (BME-CI composite, full,
+    |                                       track-specific)
     |-- agentic_extensions.py              (BAR-A, ECPI-A, IQD-A, full)
     `-- tests/
         |-- __init__.py
@@ -412,18 +477,31 @@ ledger-integrated score provenance. Close three Sprint-3 candidate items
 BLOCK A --- BME SUITE CREATION
 
 Deliverable: /shared/bme-metric-suite/ populated with:
-  - metrics.py: simplified BAR, ECPI, IQD, PTDI, AHRS computations
+  - metrics.py: simplified BAR, ECPI, IQD, PTDI, AHRS computations.
+    Each metric function docstring cites the canonical name
+    (Behavioral Assurance Rating, Entropy-Calibrated Performance Index,
+    Information Quality Deviation, Prompt Traceability and Disclosure
+    Index, Architectural Hallucination Risk Score) and marks the
+    implementation as "simplified - Sprint-5 deepening target."
   - composite_bme_ci.py: full BME-CI formula (BM x 0.40 + (1-BE) x 0.35
-    + (1-ME) x 0.25) with input derivation from the five base metrics
+    + (1-ME) x 0.25) with input derivation from the five base metrics.
+    Module docstring explicitly notes BME-CI is track-specific and
+    distinct from canonical CBMES.
   - agentic_extensions.py: full BAR-A, ECPI-A, IQD-A implementations
-    operating over transitive upstream agent chains
-  - README.md: module purpose, formula index, Sprint-5 deepening list
+    operating over transitive upstream agent chains. BAR-A docstring
+    explicitly states "Agentic Behavioral Assurance Rating - NOT an
+    agent-scoped Bias Amplification Rate. See
+    docs/nomenclature/BAR_disambiguation.md."
+  - README.md: module purpose, canonical-vs-track-specific nomenclature
+    note, formula index, Sprint-5 deepening list
   - tests/: unit tests for each metric and composite; chain-walk tests
     for the agentic extensions
 
 Acceptance:
   - Every formula in project instructions Section 4 has a corresponding
     function in the module
+  - Every metric function docstring cites the canonical expansion per
+    the 2026 treatise
   - Chain-walk aggregation for BAR-A / ECPI-A / IQD-A correctly handles
     empty upstream chains, single-upstream chains, and multi-hop chains
   - All metric functions are pure (no file I/O, no ledger access)
@@ -498,7 +576,8 @@ DEFINITION OF DONE (SPRINT-4 CLOSE)
   - Sprint-4 changelog at
     multiagent/docs/schema_versions/sprint-4-changelog.md records all
     four Blocks, deviations from this prompt, and Sprint-5 candidate
-    items (E, F, single-agent metric deepening)
+    items (E, F, single-agent metric deepening, canonical CBMES
+    reconciliation assessment)
   - Sprint-4 Lab Journal entry at docs/lab-journal/sprint-04-bme-attribution.md
     and Development Notes entry at
     docs/development-notes/sprint-04-bme-attribution.md produced at sprint
@@ -584,6 +663,18 @@ Sprint close requires both a Lab Journal entry (third-person scholarly,
 APA 7) and a Development Notes entry (first-person engineering log).
 LESSONS.md amendment is required only if a Sprint-4 defect ratifies a
 new cross-sprint correction or amends an existing one.
+
+RULE 11 --- NOMENCLATURE DISCIPLINE (SPRINT-0 REMEDIATION DERIVED)
+
+Every BME metric reference in Sprint-4 code, docstrings, commit messages,
+and documentation must use the canonical expansion per the 2026 treatise.
+BAR means Behavioral Assurance Rating. BAR-A means Agentic Behavioral
+Assurance Rating. BAR-NOBE (Bias Amplification Rate, per NOBE methodology
+PT-2026-007) is a separate metric not in Sprint-4 scope. See
+docs/nomenclature/BAR_disambiguation.md for the canonical disambiguation.
+BME-CI is explicitly identified as a track-specific simplified composite,
+distinct from canonical CBMES. Track-specific vs canonical divergence is
+acknowledged in the BME suite README, not masked.
 
 ═══════════════════════════════════════════════════════════════════════
 END OF SPRINT-4 INITIALIZATION PROMPT

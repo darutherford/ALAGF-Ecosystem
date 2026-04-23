@@ -1,4 +1,4 @@
-﻿# ALAGF-Ecosystem Development Notes
+# ALAGF-Ecosystem Development Notes
 
 **Purpose.** Engineering log capturing defects, adapter iterations,
 diagnostic approaches, and process corrections encountered during sprint
@@ -87,7 +87,7 @@ contribution was the governance scaffold that subsequent sprints build on.
 
 ## Strategic Context
 
-The Applied Lifecycle AI Governance Framework (ALAGF; Rutherford, 2025) was
+The Adaptive Lifecycle Agentic Governance Framework (ALAGF; Rutherford, 2025) was
 originally developed as a single-agent governance architecture, demonstrated
 through the `alagf-demo` prototype completed in seven development sprints.
 Extending ALAGF to govern multi-agent AI topologies required a structural
@@ -209,6 +209,6 @@ Rutherford, D. (2024). *The BME metric suite: Behavioral measurement of
 entropy in agentic AI systems* [Unpublished manuscript]. University of
 Arkansas at Little Rock.
 
-Rutherford, D. (2025). *The Applied Lifecycle AI Governance Framework*
+Rutherford, D. (2025). *The Adaptive Lifecycle Agentic Governance Framework*
 [Unpublished manuscript]. University of Arkansas at Little Rock.
 

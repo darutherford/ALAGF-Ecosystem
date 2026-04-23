@@ -1,4 +1,4 @@
-﻿# Sprint-1: AgentIdentity Lifecycle and Ledger Foundation
+# Sprint-1: AgentIdentity Lifecycle and Ledger Foundation
 
 **Sprint identifier:** ECOSYSTEM-SPRINT-1
 **Close date:** 2026-04-21
@@ -194,5 +194,5 @@ computation has no data to operate on.
 International Organization for Standardization. (2023). *Information
 technology. Artificial intelligence. Management system* (ISO/IEC 42001:2023).
 
-Rutherford, D. (2025). *The Applied Lifecycle AI Governance Framework*
+Rutherford, D. (2025). *The Adaptive Lifecycle Agentic Governance Framework*
 [Unpublished manuscript]. University of Arkansas at Little Rock.
